@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#f4ede2">
-    <title>Mis Finanzas</title>
+    <title>Panel Financiero</title>
     <link rel="manifest" href="manifest.webmanifest">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -15,84 +16,130 @@
             --ink: #4a443d;
             --ink-soft: #8a8175;
             --line: #e4d9c8;
+
             --sueldo: #a8b4c9;
             --propina: #e8b896;
             --egreso: #d9a8a0;
+            --deuda: #b8a0c0;
             --positivo: #a8c0a0;
             --negativo: #c97f6f;
         }
         * { box-sizing: border-box; }
         html, body {
-            margin: 0; min-height: 100vh;
-            background: var(--papiro); color: var(--ink);
+            margin: 0; background: var(--papiro); color: var(--ink);
             font-family: 'Inter', system-ui, sans-serif; font-size: 14px; line-height: 1.6;
             -webkit-font-smoothing: antialiased;
         }
-        .wrap { max-width: 1080px; margin: 0 auto; padding: 40px 24px 120px; }
+        .wrap { max-width: 1180px; margin: 0 auto; padding: 48px 40px 100px; }
+        @media (max-width: 640px) { .wrap { padding: 32px 20px 80px; } }
+
+        header.top { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 48px; gap: 24px; flex-wrap: wrap; }
         .eyebrow { font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.16em; text-transform:uppercase; color:var(--ink-soft); margin:0 0 10px; }
-        h1 { font-family:'Source Serif 4',serif; font-weight:600; font-size:30px; margin:0; letter-spacing:-0.01em; }
-        h2 { font-family:'Source Serif 4',serif; font-size:19px; font-weight:600; margin:0; }
+        .status-dot { display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--positivo); margin-right:8px; vertical-align:middle; }
+        h1 { font-family:'Source Serif 4',serif; font-weight:600; font-size:38px; margin:0; letter-spacing:-0.01em; }
+        .top-actions { display: flex; gap: 24px; align-items: center; }
+
+        .month-nav { display:flex; align-items:center; gap:12px; }
+        .month-nav button { border:1px solid var(--line); background:transparent; color:var(--ink); border-radius:2px; padding:2px 11px; font-size:16px; cursor:pointer; }
+        .month-nav button:hover { border-color:var(--ink); }
+        .month-nav .mlabel { font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.06em; text-transform:uppercase; color:var(--ink-soft); min-width:120px; text-align:center; }
+
+        button.action {
+            font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.06em; border:none; background:transparent;
+            color:var(--ink-soft); padding:0 0 4px; cursor:pointer; text-transform:uppercase; border-bottom:1px solid var(--ink-soft);
+            transition:color 0.2s, border-color 0.2s;
+        }
+        button.action:hover { color:var(--ink); border-color:var(--ink); }
+
+        section { margin-bottom: 64px; }
+        .section-head { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:20px; }
+        h2 { font-family:'Source Serif 4',serif; font-size:19px; font-weight:600; margin:0; color:var(--ink); }
         h2 .tag { display:inline-block; width:7px; height:7px; border-radius:50%; margin-right:10px; vertical-align:middle; }
-        label { display:block; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:6px; }
-        input {
-            width:100%; background:transparent; border:none; border-bottom:1px solid var(--line);
-            padding:8px 4px; font-family:'Inter',sans-serif; font-size:15px; color:var(--ink); transition:border-color 0.2s;
+
+        button.add {
+            font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.04em; text-transform:uppercase;
+            background:none; border:none; color:var(--ink-soft); cursor:pointer; padding:0; transition:color 0.2s;
         }
+        button.add:hover { color:var(--ink); }
+
+        input[type="number"], input[type="text"], input[type="email"], input[type="password"] {
+            background:transparent; border:none; border-bottom:1px solid transparent; padding:6px 4px;
+            font-family:'Inter',sans-serif; font-size:13px; color:var(--ink); transition:border-color 0.2s; width:100%;
+        }
+        input:hover { border-bottom-color: var(--line); }
         input:focus { outline:none; border-bottom-color:var(--ink); }
-        input[type="number"] { text-align:right; font-family:'IBM Plex Mono',monospace; font-size:14px; }
-        button {
-            font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.06em; text-transform:uppercase;
-            cursor:pointer; border:1px solid var(--ink); background:var(--ink); color:var(--papiro);
-            padding:10px 18px; border-radius:2px; transition:opacity 0.2s;
+        input[type="number"] { text-align:right; font-family:'IBM Plex Mono',monospace; }
+
+        .egresos-head, .ingresos-head {
+            display:grid; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.08em; text-transform:uppercase;
+            color:var(--ink-soft); padding:0 4px 10px; border-bottom:1px solid var(--line); margin-bottom:4px;
         }
-        button:hover { opacity:0.85; }
-        button.ghost { background:transparent; color:var(--ink-soft); border-color:var(--line); padding:8px 14px; }
-        button.add { background:none; border:none; color:var(--ink-soft); padding:0; font-size:11px; }
-        button.add:hover { color:var(--ink); opacity:1; }
-        .card { padding:28px; border:1px solid var(--line); border-radius:6px; background:var(--papiro-suave); max-width:420px; }
+        .egresos-head { grid-template-columns: 1fr 100px 64px 14px 24px; }
+        .egresos-head span:nth-child(2) { text-align:right; }
+        .egresos-head span:nth-child(3) { text-align:center; }
+        .ingresos-head { grid-template-columns: 70px 1fr 1fr 24px; }
+        .ingresos-head span:nth-child(2), .ingresos-head span:nth-child(3) { text-align:right; }
+
+        .row-egreso { display:grid; grid-template-columns:1fr 100px 64px 14px 24px; gap:10px; align-items:center; padding:9px 4px; border-bottom:1px solid var(--papiro-suave); }
+        .row-egreso input[name="dia"] { text-align:center; }
+        .color-chip { width:8px; height:8px; border-radius:50%; margin:0 auto; }
+        .row-ingreso { display:grid; grid-template-columns:70px 1fr 1fr 24px; gap:10px; align-items:center; padding:9px 4px; border-bottom:1px solid var(--papiro-suave); }
+        .row-ingreso .day-cell { display:flex; align-items:center; gap:6px; }
+        .day-cell span { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-soft); }
+        .day-cell input { text-align:center; }
+
+        .remove-btn { background:none; border:none; color:var(--line); font-size:17px; line-height:1; cursor:pointer; transition:color 0.2s; padding:0; }
+        .remove-btn:hover { color:var(--negativo); }
+
+        .totals { margin-top:18px; padding-top:14px; display:flex; justify-content:space-between; align-items:baseline; }
+        .totals .label { font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--ink-soft); }
+        .totals .value { font-family:'Source Serif 4',serif; font-size:24px; font-weight:600; }
+        .totals .value.neg { color:var(--negativo); }
+        .totals .value.pos { color:var(--positivo); }
+
+        #ingresos-container { max-height:480px; overflow-y:auto; }
+        #ingresos-container::-webkit-scrollbar { width:3px; }
+        #ingresos-container::-webkit-scrollbar-thumb { background:var(--line); border-radius:2px; }
+
+        .kpi-row { display:flex; flex-wrap:wrap; gap:48px; margin-bottom:12px; }
+        .kpi { min-width:120px; }
+        .kpi .label { font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:8px; }
+        .kpi .value { font-family:'Source Serif 4',serif; font-size:26px; font-weight:600; }
+        .kpi .value.sueldo { color:var(--sueldo); }
+        .kpi .value.propina { color:var(--propina); }
+        .kpi .value.neg { color:var(--negativo); }
+        .kpi .value.pos { color:var(--positivo); }
+
+        .kpi-grid-horizontal { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:32px; margin-bottom:32px; align-items:start; }
+
+        .alert { font-family:'Inter',sans-serif; font-size:13px; padding:0 0 0 16px; border-left:2px solid; margin-bottom:28px; display:none; color:var(--ink); }
+        .alert.show { display:block; }
+        .alert.warn { border-color:var(--negativo); }
+        .alert.ok { border-color:var(--positivo); }
+
+        .chart-wrap { position:relative; height:420px; width:100%; }
+
+        .meta-deuda-row { display:flex; gap:48px; align-items:baseline; margin-bottom:24px; }
+        .meta-deuda-row .field label { display:block; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:8px; }
+        .meta-deuda-row .field input { font-family:'Source Serif 4',serif; font-size:20px; font-weight:600; text-align:left; padding:0; }
+
+        .barra-progreso { background:var(--papiro-suave); border-radius:2px; height:6px; overflow:hidden; margin-bottom:32px; }
+        .barra-progreso .fill { background:var(--deuda); height:100%; width:0%; transition:width 0.4s ease; }
+
+        .fila { display:grid; grid-template-columns:400px 1fr; gap:64px; align-items:start; margin-bottom:64px; }
+        @media (max-width: 1020px) { .fila { grid-template-columns:1fr; } }
+
         .hidden { display:none !important; }
-        .muted { color:var(--ink-soft); font-size:12px; }
+        .login-card { max-width:420px; padding:28px; border:1px solid var(--line); border-radius:6px; background:var(--papiro-suave); }
+        .login-card label { display:block; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:6px; }
+        .login-card input { border-bottom:1px solid var(--line); font-size:15px; }
+        .btn-primary { font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.06em; text-transform:uppercase; cursor:pointer; border:1px solid var(--ink); background:var(--ink); color:var(--papiro); padding:10px 18px; border-radius:2px; }
+        .btn-primary:hover { opacity:0.85; }
         .msg { font-size:12px; margin-top:12px; min-height:18px; }
         .msg.err { color:var(--negativo); }
         .msg.ok { color:var(--positivo); }
-        .status-dot { display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--positivo); margin-right:8px; vertical-align:middle; }
-
-        /* Topbar */
-        .topbar { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:36px; gap:16px; flex-wrap:wrap; }
-        .month-nav { display:flex; align-items:center; gap:14px; }
-        .month-nav .mlabel { font-family:'Source Serif 4',serif; font-size:18px; font-weight:600; min-width:150px; text-align:center; text-transform:capitalize; }
-        .month-nav button { background:none; border:1px solid var(--line); color:var(--ink); padding:4px 12px; font-size:16px; }
-
-        /* KPIs */
-        .kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:28px; margin-bottom:48px; }
-        .kpi .klabel { font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:8px; }
-        .kpi .kvalue { font-family:'Source Serif 4',serif; font-size:24px; font-weight:600; }
-        .kvalue.sueldo { color:var(--sueldo); }
-        .kvalue.propina { color:var(--propina); }
-        .kvalue.neg { color:var(--negativo); }
-        .kvalue.pos { color:var(--positivo); }
-
-        /* Layout dos columnas */
-        .fila { display:grid; grid-template-columns:1fr 1fr; gap:56px; align-items:start; }
-        @media (max-width:860px) { .fila { grid-template-columns:1fr; gap:48px; } }
-        section { margin-bottom:8px; }
-        .section-head { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:16px; }
-
-        .head-row, .row-item { display:grid; align-items:center; gap:10px; }
-        .head-egreso, .row-egreso { grid-template-columns:1fr 110px 56px 24px; }
-        .head-ingreso, .row-ingreso { grid-template-columns:56px 1fr 1fr 24px; }
-        .head-row { font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:var(--ink-soft); padding:0 4px 8px; border-bottom:1px solid var(--line); }
-        .head-row span:not(:first-child) { text-align:right; }
-        .head-ingreso span:first-child, .row-ingreso input[name="dia"] { text-align:center; }
-        .row-item { padding:6px 4px; border-bottom:1px solid var(--papiro); }
-        .row-item input { padding:6px 4px; font-size:14px; }
-        .remove-btn { background:none; border:none; color:var(--line); font-size:18px; line-height:1; cursor:pointer; padding:0; }
-        .remove-btn:hover { color:var(--negativo); }
-        .totals { margin-top:16px; padding-top:12px; display:flex; justify-content:space-between; align-items:baseline; }
-        .totals .label { font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--ink-soft); }
-        .totals .value { font-family:'Source Serif 4',serif; font-size:22px; font-weight:600; }
-        .add-inline { display:flex; gap:8px; align-items:flex-end; margin-top:16px; }
-        .add-inline .day-in { width:70px; flex:none; }
+        .saved-flash { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--ink); color:var(--papiro); font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.06em; padding:8px 16px; border-radius:3px; opacity:0; transition:opacity 0.3s; pointer-events:none; }
+        .saved-flash.show { opacity:0.92; }
     </style>
 </head>
 <body>
@@ -101,9 +148,9 @@
         <!-- ===== LOGIN ===== -->
         <section id="login-view">
             <p class="eyebrow">Operación Personal</p>
-            <h1>Mis Finanzas</h1>
-            <p class="muted" style="margin-bottom:32px;">Entra con tu correo y contraseña.</p>
-            <div class="card">
+            <h1 style="margin-bottom:8px;">Panel Financiero</h1>
+            <p style="color:var(--ink-soft); margin:0 0 32px;">Entra con tu correo y contraseña.</p>
+            <div class="login-card">
                 <div style="margin-bottom:20px;">
                     <label>Correo</label>
                     <input type="email" id="email" autocomplete="username" placeholder="tu@correo.com">
@@ -112,74 +159,133 @@
                     <label>Contraseña</label>
                     <input type="password" id="password" autocomplete="current-password" placeholder="••••••••">
                 </div>
-                <button id="btn-login">Entrar</button>
+                <button class="btn-primary" id="btn-login">Entrar</button>
                 <div id="login-msg" class="msg"></div>
             </div>
         </section>
 
         <!-- ===== APP ===== -->
         <section id="app-view" class="hidden">
-            <div class="topbar">
+            <header class="top">
                 <div>
                     <p class="eyebrow"><span class="status-dot"></span>En vivo</p>
-                    <h1>Mis Finanzas</h1>
+                    <h1>Panel Financiero</h1>
                 </div>
-                <div style="display:flex; flex-direction:column; align-items:flex-end; gap:14px;">
-                    <button class="ghost" id="btn-logout">Salir</button>
+                <div class="top-actions">
                     <div class="month-nav">
-                        <button id="mes-prev" title="Mes anterior">‹</button>
+                        <button type="button" id="mes-prev" title="Mes anterior">‹</button>
                         <span class="mlabel" id="mes-label">—</span>
-                        <button id="mes-next" title="Mes siguiente">›</button>
+                        <button type="button" id="mes-next" title="Mes siguiente">›</button>
                     </div>
+                    <button class="action" id="btn-logout">Salir</button>
+                </div>
+            </header>
+
+            <!-- Fila 1: Egresos fijos + KPIs -->
+            <div class="fila">
+                <div>
+                    <section>
+                        <div class="section-head">
+                            <h2><span class="tag" style="background:var(--egreso)"></span>Egresos fijos</h2>
+                            <button class="add" onclick="agregarEgreso()">+ Añadir</button>
+                        </div>
+                        <div class="egresos-head">
+                            <span>Nombre</span><span>Monto</span><span>Día pago</span><span></span><span></span>
+                        </div>
+                        <div id="egresos-container"></div>
+                        <div class="totals">
+                            <span class="label">Total egresos</span>
+                            <span id="total-egresos" class="value neg">$0</span>
+                        </div>
+                    </section>
+                </div>
+                <div>
+                    <div class="kpi-grid-horizontal">
+                        <div class="kpi"><div class="label">Sueldo bruto</div><div class="value sueldo" id="kpi-sueldo">$0</div></div>
+                        <div class="kpi"><div class="label">Propinas brutas</div><div class="value propina" id="kpi-propinas">$0</div></div>
+                        <div class="kpi"><div class="label">Total bruto</div><div class="value" id="kpi-bruto">$0</div></div>
+                        <div class="kpi"><div class="label">Egresos fijos</div><div class="value" id="kpi-egresos">$0</div></div>
+                        <div class="kpi"><div class="label">Saldo neto final</div><div class="value" id="kpi-saldo">$0</div></div>
+                    </div>
+                    <div id="alerta-negativo" class="alert warn">El saldo neto cae por debajo de cero en alguna fecha de pago.</div>
+                    <div id="alerta-ok" class="alert ok">El saldo neto se mantiene positivo durante todo el mes.</div>
                 </div>
             </div>
 
-            <!-- KPIs -->
-            <div class="kpi-grid">
-                <div class="kpi"><div class="klabel">Sueldo / turno</div><div class="kvalue sueldo" id="kpi-sueldo">$0</div></div>
-                <div class="kpi"><div class="klabel">Propinas</div><div class="kvalue propina" id="kpi-propinas">$0</div></div>
-                <div class="kpi"><div class="klabel">Total bruto</div><div class="kvalue" id="kpi-bruto">$0</div></div>
-                <div class="kpi"><div class="klabel">Egresos fijos</div><div class="kvalue" id="kpi-egresos">$0</div></div>
-                <div class="kpi"><div class="klabel">Saldo neto</div><div class="kvalue" id="kpi-saldo">$0</div></div>
-            </div>
-
+            <!-- Fila 2: Ingresos diarios + Evolución -->
             <div class="fila">
-                <!-- EGRESOS FIJOS -->
-                <section>
+                <div>
+                    <section>
+                        <div class="section-head">
+                            <h2><span class="tag" style="background:var(--positivo)"></span>Ingresos diarios</h2>
+                            <button class="add" onclick="agregarIngreso()">+ Añadir</button>
+                        </div>
+                        <div class="ingresos-head"><span>Día</span><span>Propinas</span><span>Turno</span><span></span></div>
+                        <div id="ingresos-container"></div>
+                    </section>
+                </div>
+                <div>
                     <div class="section-head">
-                        <h2><span class="tag" style="background:var(--egreso)"></span>Egresos fijos</h2>
+                        <h2>Evolución del mes</h2>
+                        <button class="add" id="btn-proyectar" onclick="toggleProyeccion()">Proyectar mes</button>
                     </div>
-                    <div class="head-row head-egreso"><span>Nombre</span><span>Monto</span><span>Día</span><span></span></div>
-                    <div id="egresos-list"></div>
-                    <div class="totals"><span class="label">Total egresos</span><span class="value neg" id="total-egresos">$0</span></div>
-                    <div class="add-inline">
-                        <div style="flex:1;"><label>Nuevo egreso</label><input type="text" id="new-egreso-nombre" placeholder="Ej: Arriendo"></div>
-                        <div style="width:110px; flex:none;"><label>Monto</label><input type="number" id="new-egreso-monto" placeholder="0" min="0"></div>
-                        <div class="day-in"><label>Día</label><input type="number" id="new-egreso-dia" placeholder="1" min="1" max="31"></div>
-                        <button class="add" id="btn-add-egreso">+ Añadir</button>
+                    <div id="proyeccion-detalle" style="display:none; margin-bottom:24px;">
+                        <div class="kpi-row">
+                            <div class="kpi"><div class="label">Días restantes</div><div class="value" id="proy-dias-restantes" style="font-size:20px;">0</div></div>
+                            <div class="kpi"><div class="label">Prom. propina/día</div><div class="value propina" id="proy-prom-propina" style="font-size:20px;">$0</div></div>
+                            <div class="kpi"><div class="label">Prom. sueldo/día</div><div class="value sueldo" id="proy-prom-sueldo" style="font-size:20px;">$0</div></div>
+                            <div class="kpi"><div class="label">Bruto proyectado</div><div class="value" id="proy-bruto-final" style="font-size:20px;">$0</div></div>
+                            <div class="kpi"><div class="label">Saldo proyectado</div><div class="value" id="proy-saldo-final" style="font-size:20px;">$0</div></div>
+                        </div>
                     </div>
-                </section>
-
-                <!-- INGRESOS DIARIOS -->
-                <section>
-                    <div class="section-head">
-                        <h2><span class="tag" style="background:var(--positivo)"></span>Ingresos diarios</h2>
-                    </div>
-                    <div class="head-row head-ingreso"><span>Día</span><span>Turno</span><span>Propinas</span><span></span></div>
-                    <div id="ingresos-list"></div>
-                    <div class="add-inline">
-                        <div class="day-in"><label>Día</label><input type="number" id="new-ingreso-dia" placeholder="1" min="1" max="31"></div>
-                        <div style="flex:1;"><label>Turno</label><input type="number" id="new-ingreso-turno" placeholder="0" min="0"></div>
-                        <div style="flex:1;"><label>Propinas</label><input type="number" id="new-ingreso-propinas" placeholder="0" min="0"></div>
-                        <button class="add" id="btn-add-ingreso">+ Añadir</button>
-                    </div>
-                </section>
+                    <div class="chart-wrap" style="height:560px;"><canvas id="financeChart"></canvas></div>
+                </div>
             </div>
 
-            <div id="app-msg" class="msg" style="text-align:center; margin-top:32px;"></div>
-            <p class="muted" style="margin-top:20px; text-align:center;">Fase 1a · egresos, ingresos y KPIs en vivo. Sigue: deuda universitaria y gráficos.</p>
+            <!-- Fila 3: Abono universidad + Deuda -->
+            <div class="fila">
+                <div>
+                    <section>
+                        <div class="section-head">
+                            <h2><span class="tag" style="background:var(--deuda)"></span>Abono a la universidad</h2>
+                            <button class="add" onclick="agregarAbono()">+ Añadir abono</button>
+                        </div>
+                        <div class="meta-deuda-row">
+                            <div class="field">
+                                <label>Meta total de la deuda</label>
+                                <input type="number" id="deuda-meta" value="1000000" min="0" onchange="actualizarMetaDeuda(parseFloat(this.value) || 0)">
+                            </div>
+                            <div class="field">
+                                <label>Restante</label>
+                                <div id="deuda-restante-mini" style="font-family:'Source Serif 4',serif; font-size:20px; font-weight:600; color:var(--negativo);">$1.000.000</div>
+                            </div>
+                        </div>
+                        <div class="egresos-head" style="grid-template-columns: 1fr 100px 64px 24px;">
+                            <span>Nota</span><span>Monto</span><span>Día pago</span><span></span>
+                        </div>
+                        <div id="abonos-container"></div>
+                        <div class="totals">
+                            <span class="label">Total abonado</span>
+                            <span id="total-abonos" class="value" style="color:var(--deuda);">$0</span>
+                        </div>
+                    </section>
+                </div>
+                <div>
+                    <div class="section-head"><h2><span class="tag" style="background:var(--deuda)"></span>Deuda universitaria</h2></div>
+                    <div class="kpi-row">
+                        <div class="kpi"><div class="label">Meta total</div><div class="value" id="deuda-kpi-meta">$0</div></div>
+                        <div class="kpi"><div class="label">Abonado a la fecha</div><div class="value" style="color:var(--deuda);" id="deuda-kpi-abonado">$0</div></div>
+                        <div class="kpi"><div class="label">Restante</div><div class="value neg" id="deuda-kpi-restante">$0</div></div>
+                        <div class="kpi"><div class="label">Progreso</div><div class="value" id="deuda-porcentaje" style="color:var(--deuda);">0%</div></div>
+                    </div>
+                    <div class="barra-progreso"><div class="fill" id="deuda-barra"></div></div>
+                    <div class="chart-wrap" style="height:380px;"><canvas id="deudaChart"></canvas></div>
+                </div>
+            </div>
         </section>
     </div>
+
+    <div class="saved-flash" id="saved-flash">Guardado ✓</div>
 
     <script type="module">
         import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -188,170 +294,374 @@
         const SUPABASE_KEY = 'sb_publishable_LqwpwT8dfxv93ukvwy9BKQ_LWyHd5Ha';
         const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        const $ = (id) => document.getElementById(id);
-        const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-        const fmt = (n) => '$' + Math.round(Number(n) || 0).toLocaleString('es-CL');
-        const esc = (s) => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-
-        // Estado
+        // ===== ESTADO (misma forma que tu Nazaret) =====
+        let appState = { egresos: [], ingresos: [], deuda: { meta: 1000000, abonos: [] } };
+        let uid = null;
+        let metaId = null;
         let mes = new Date(); mes.setDate(1);
-        let egresos = [];
-        let ingresos = [];
+        let chartInstance = null, deudaChartInstance = null, proyeccionActiva = false;
+        let recargando = false;
+
+        const COLOR_DEUDA = '#b8a0c0';
+        const PALETA_EGRESOS = ['#d9a8a0','#b8a0c0','#e8c98a','#9cc0b8','#c97f6f','#a8b4c9'];
+        const COLOR_SUELDO = '#a8b4c9', COLOR_PROPINA = '#e8b896', COLOR_NETO = '#7a7264';
+        const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+
+        const $ = (id) => document.getElementById(id);
+        const flash = () => { const f=$('saved-flash'); f.classList.add('show'); setTimeout(()=>f.classList.remove('show'),1000); };
 
         function rangoMes() {
             const y = mes.getFullYear(), m = mes.getMonth();
-            const primero = `${y}-${String(m+1).padStart(2,'0')}-01`;
-            const ultimoDia = new Date(y, m+1, 0).getDate();
-            const ultimo = `${y}-${String(m+1).padStart(2,'0')}-${String(ultimoDia).padStart(2,'0')}`;
-            return { primero, ultimo, ultimoDia };
+            const ud = new Date(y, m+1, 0).getDate();
+            const pad = (n)=>String(n).padStart(2,'0');
+            return { primero:`${y}-${pad(m+1)}-01`, ultimo:`${y}-${pad(m+1)}-${pad(ud)}`, ultimoDia: ud };
         }
+        function fechaDeDia(dia) {
+            const y = mes.getFullYear(), m = mes.getMonth();
+            const d = Math.min(rangoMes().ultimoDia, Math.max(1, parseInt(dia)||1));
+            return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        }
+        const diaDeFecha = (f) => f ? new Date(f + 'T00:00').getDate() : 1;
 
-        // ---- Sesión ----
+        // ===== SESIÓN =====
         async function refreshSession() {
             const { data: { session } } = await sb.auth.getSession();
-            if (session) showApp(session.user); else showLogin();
+            if (session) { uid = session.user.id; showApp(); } else showLogin();
         }
         function showLogin() { $('app-view').classList.add('hidden'); $('login-view').classList.remove('hidden'); }
-        function showApp() {
+        async function showApp() {
             $('login-view').classList.add('hidden'); $('app-view').classList.remove('hidden');
-            actualizarLabelMes(); cargarTodo(); suscribir();
+            actualizarLabelMes();
+            await recargar();
+            suscribir();
         }
 
-        // ---- Login ----
         $('btn-login').addEventListener('click', async () => {
             const msg = $('login-msg'); msg.className='msg'; msg.textContent='Entrando...';
             const { error } = await sb.auth.signInWithPassword({ email: $('email').value.trim(), password: $('password').value });
             if (error) { msg.className='msg err'; msg.textContent='No se pudo entrar: ' + error.message; }
             else { msg.textContent=''; refreshSession(); }
         });
-        $('password').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('btn-login').click(); });
-        $('btn-logout').addEventListener('click', async () => { await sb.auth.signOut(); showLogin(); });
+        $('password').addEventListener('keydown', (e)=>{ if(e.key==='Enter') $('btn-login').click(); });
+        $('btn-logout').addEventListener('click', async ()=>{ await sb.auth.signOut(); showLogin(); });
 
-        // ---- Navegación de mes ----
-        function actualizarLabelMes() { $('mes-label').textContent = `${MESES[mes.getMonth()]} ${mes.getFullYear()}`; }
-        $('mes-prev').addEventListener('click', () => { mes.setMonth(mes.getMonth()-1); actualizarLabelMes(); cargarIngresos(); });
-        $('mes-next').addEventListener('click', () => { mes.setMonth(mes.getMonth()+1); actualizarLabelMes(); cargarIngresos(); });
+        // ===== NAVEGACIÓN DE MES =====
+        function actualizarLabelMes(){ $('mes-label').textContent = `${MESES[mes.getMonth()]} ${mes.getFullYear()}`; }
+        $('mes-prev').addEventListener('click', async ()=>{ mes.setMonth(mes.getMonth()-1); actualizarLabelMes(); await recargar(); });
+        $('mes-next').addEventListener('click', async ()=>{ mes.setMonth(mes.getMonth()+1); actualizarLabelMes(); await recargar(); });
 
-        // ---- Carga ----
-        async function cargarTodo() { await Promise.all([cargarEgresos(), cargarIngresos()]); }
-
-        async function cargarEgresos() {
-            const { data, error } = await sb.from('egresos_fijos').select('*').order('creado_en', { ascending:true });
-            if (error) return setMsg('Error egresos: '+error.message, true);
-            egresos = data || [];
-            renderEgresos(); calcularKPIs();
-        }
-        async function cargarIngresos() {
+        // ===== CARGA DESDE SUPABASE =====
+        async function recargar() {
+            recargando = true;
             const { primero, ultimo } = rangoMes();
-            const { data, error } = await sb.from('ingresos_diarios').select('*').gte('fecha', primero).lte('fecha', ultimo).order('fecha', { ascending:true });
-            if (error) return setMsg('Error ingresos: '+error.message, true);
-            ingresos = data || [];
-            renderIngresos(); calcularKPIs();
-        }
-
-        // ---- Render egresos ----
-        function renderEgresos() {
-            const list = $('egresos-list');
-            list.innerHTML = egresos.map(e => `
-                <div class="row-item row-egreso">
-                    <input type="text" value="${esc(e.nombre)}" data-id="${e.id}" data-campo="nombre">
-                    <input type="number" value="${e.monto}" min="0" data-id="${e.id}" data-campo="monto">
-                    <input type="number" name="dia" value="${e.dia_pago}" min="1" max="31" data-id="${e.id}" data-campo="dia_pago">
-                    <button class="remove-btn" data-del-egreso="${e.id}" title="Eliminar">&times;</button>
-                </div>`).join('') || '<p class="muted">Sin egresos fijos aún.</p>';
-        }
-        // ---- Render ingresos ----
-        function renderIngresos() {
-            const list = $('ingresos-list');
-            list.innerHTML = ingresos.map(i => `
-                <div class="row-item row-ingreso">
-                    <input type="number" name="dia" value="${new Date(i.fecha+'T00:00').getDate()}" min="1" max="31" data-id="${i.id}" data-campo="dia">
-                    <input type="number" value="${i.turno}" min="0" data-id="${i.id}" data-campo="turno">
-                    <input type="number" value="${i.propinas}" min="0" data-id="${i.id}" data-campo="propinas">
-                    <button class="remove-btn" data-del-ingreso="${i.id}" title="Eliminar">&times;</button>
-                </div>`).join('') || '<p class="muted">Sin ingresos este mes.</p>';
-        }
-
-        // ---- KPIs ----
-        function calcularKPIs() {
-            const totalEgresos = egresos.reduce((a,e)=> a + (Number(e.monto)||0), 0);
-            const totalSueldo = ingresos.reduce((a,i)=> a + (Number(i.turno)||0), 0);
-            const totalPropinas = ingresos.reduce((a,i)=> a + (Number(i.propinas)||0), 0);
-            const bruto = totalSueldo + totalPropinas;
-            const saldo = bruto - totalEgresos;
-            $('kpi-sueldo').textContent = fmt(totalSueldo);
-            $('kpi-propinas').textContent = fmt(totalPropinas);
-            $('kpi-bruto').textContent = fmt(bruto);
-            $('kpi-egresos').textContent = fmt(totalEgresos);
-            $('total-egresos').textContent = fmt(totalEgresos);
-            const kSaldo = $('kpi-saldo');
-            kSaldo.textContent = fmt(saldo);
-            kSaldo.className = 'kvalue ' + (saldo < 0 ? 'neg' : 'pos');
-        }
-
-        // ---- Edición en línea (delegación) ----
-        $('egresos-list').addEventListener('change', async (ev) => {
-            const el = ev.target; const id = el.dataset.id, campo = el.dataset.campo;
-            if (!id) return;
-            let valor = campo === 'nombre' ? el.value : Number(el.value) || 0;
-            if (campo === 'dia_pago') valor = Math.min(31, Math.max(1, valor|0));
-            const { error } = await sb.from('egresos_fijos').update({ [campo]: valor }).eq('id', id);
-            if (error) setMsg('Error guardando: '+error.message, true);
-        });
-        $('ingresos-list').addEventListener('change', async (ev) => {
-            const el = ev.target; const id = el.dataset.id, campo = el.dataset.campo;
-            if (!id) return;
-            if (campo === 'dia') {
-                const dia = Math.min(rangoMes().ultimoDia, Math.max(1, (Number(el.value)||1)|0));
-                const y = mes.getFullYear(), m = mes.getMonth();
-                const fecha = `${y}-${String(m+1).padStart(2,'0')}-${String(dia).padStart(2,'0')}`;
-                const { error } = await sb.from('ingresos_diarios').update({ fecha }).eq('id', id);
-                if (error) setMsg('Error guardando: '+error.message, true);
-            } else {
-                const { error } = await sb.from('ingresos_diarios').update({ [campo]: Number(el.value)||0 }).eq('id', id);
-                if (error) setMsg('Error guardando: '+error.message, true);
+            const [egRes, ingRes, metaRes] = await Promise.all([
+                sb.from('egresos_fijos').select('*').order('creado_en', { ascending:true }),
+                sb.from('ingresos_diarios').select('*').gte('fecha', primero).lte('fecha', ultimo).order('fecha', { ascending:true }),
+                sb.from('metas').select('*').eq('tipo','deuda').order('creado_en', { ascending:true }).limit(1)
+            ]);
+            if (egRes.error || ingRes.error || metaRes.error) {
+                console.error(egRes.error || ingRes.error || metaRes.error);
+                recargando = false; return;
             }
-        });
+            let meta = (metaRes.data && metaRes.data[0]) || null;
+            if (!meta) {
+                metaId = crypto.randomUUID();
+                await sb.from('metas').insert({ id: metaId, user_id: uid, nombre:'Universidad', tipo:'deuda', monto_objetivo: 1000000 });
+                meta = { id: metaId, monto_objetivo: 1000000 };
+            }
+            metaId = meta.id;
+            const abRes = await sb.from('abonos').select('*').eq('meta_id', metaId).order('creado_en', { ascending:true });
 
-        // ---- Eliminar (delegación) ----
-        document.addEventListener('click', async (ev) => {
-            const de = ev.target.dataset.delEgreso, di = ev.target.dataset.delIngreso;
-            if (de) { await sb.from('egresos_fijos').delete().eq('id', de); }
-            if (di) { await sb.from('ingresos_diarios').delete().eq('id', di); }
-        });
+            appState.egresos = (egRes.data||[]).map(r => ({ id:r.id, nombre:r.nombre, monto:Number(r.monto)||0, diaPago:r.dia_pago }));
+            appState.ingresos = (ingRes.data||[]).map(r => ({ id:r.id, dia:diaDeFecha(r.fecha), propinas:Number(r.propinas)||0, turno:Number(r.turno)||0 }));
+            appState.deuda = {
+                meta: Number(meta.monto_objetivo)||0,
+                abonos: (abRes.data||[]).map(r => ({ id:r.id, nota:r.nota||'', monto:Number(r.monto)||0, diaPago:diaDeFecha(r.fecha) }))
+            };
 
-        // ---- Añadir ----
-        $('btn-add-egreso').addEventListener('click', async () => {
-            const nombre = $('new-egreso-nombre').value.trim() || 'Nuevo egreso';
-            const monto = Number($('new-egreso-monto').value) || 0;
-            const dia = Math.min(31, Math.max(1, (Number($('new-egreso-dia').value)||1)|0));
-            $('new-egreso-nombre').value=''; $('new-egreso-monto').value=''; $('new-egreso-dia').value='';
-            const { error } = await sb.from('egresos_fijos').insert({ nombre, monto, dia_pago: dia });
-            if (error) setMsg('Error: '+error.message, true); else setMsg('Guardado ✓', false);
-        });
-        $('btn-add-ingreso').addEventListener('click', async () => {
-            const dia = Math.min(rangoMes().ultimoDia, Math.max(1, (Number($('new-ingreso-dia').value)||1)|0));
-            const turno = Number($('new-ingreso-turno').value) || 0;
-            const propinas = Number($('new-ingreso-propinas').value) || 0;
-            const y = mes.getFullYear(), m = mes.getMonth();
-            const fecha = `${y}-${String(m+1).padStart(2,'0')}-${String(dia).padStart(2,'0')}`;
-            $('new-ingreso-dia').value=''; $('new-ingreso-turno').value=''; $('new-ingreso-propinas').value='';
-            const { error } = await sb.from('ingresos_diarios').insert({ fecha, turno, propinas });
-            if (error) setMsg('Error: '+error.message, true); else setMsg('Guardado ✓', false);
-        });
+            $('deuda-meta').value = appState.deuda.meta;
+            renderizarEgresos(); renderizarAbonos(); renderizarIngresos(); actualizarGrafica();
+            recargando = false;
+        }
 
-        // ---- Tiempo real ----
+        // ===== TIEMPO REAL =====
         function suscribir() {
-            sb.channel('cambios-finanzas')
-              .on('postgres_changes', { event:'*', schema:'public', table:'egresos_fijos' }, () => cargarEgresos())
-              .on('postgres_changes', { event:'*', schema:'public', table:'ingresos_diarios' }, () => cargarIngresos())
+            sb.channel('finanzas')
+              .on('postgres_changes', { event:'*', schema:'public', table:'egresos_fijos' }, refrescarSuave)
+              .on('postgres_changes', { event:'*', schema:'public', table:'ingresos_diarios' }, refrescarSuave)
+              .on('postgres_changes', { event:'*', schema:'public', table:'abonos' }, refrescarSuave)
+              .on('postgres_changes', { event:'*', schema:'public', table:'metas' }, refrescarSuave)
               .subscribe();
         }
-
-        function setMsg(text, isErr) {
-            const m = $('app-msg'); m.className = 'msg ' + (isErr?'err':'ok'); m.textContent = text;
-            if (!isErr) setTimeout(()=>{ m.textContent=''; }, 1400);
+        let refrescoPendiente = null;
+        function refrescarSuave() {
+            if (document.activeElement && ['INPUT','TEXTAREA'].includes(document.activeElement.tagName)) return; // no interrumpir edición
+            clearTimeout(refrescoPendiente);
+            refrescoPendiente = setTimeout(() => { if (!recargando) recargar(); }, 350);
         }
+
+        // ===== EGRESOS =====
+        function renderizarEgresos() {
+            const c = $('egresos-container'); c.innerHTML=''; let total=0;
+            appState.egresos.forEach((e, i) => {
+                total += (Number(e.monto)||0);
+                const color = PALETA_EGRESOS[i % PALETA_EGRESOS.length];
+                const row = document.createElement('div'); row.className='row-egreso';
+                row.innerHTML = `
+                    <input type="text" value="${escapeAttr(e.nombre)}" onchange="actualizarEgreso('${e.id}','nombre',this.value)" placeholder="Nombre">
+                    <input type="number" value="${e.monto}" min="0" onchange="actualizarEgreso('${e.id}','monto',parseFloat(this.value)||0)" placeholder="Monto">
+                    <input type="number" name="dia" value="${e.diaPago}" min="1" max="31" onchange="actualizarEgreso('${e.id}','diaPago',clampDia(this.value))" title="Día de pago">
+                    <span class="color-chip" style="background:${color}"></span>
+                    <button class="remove-btn" onclick="eliminarEgreso('${e.id}')" title="Eliminar">&times;</button>`;
+                c.appendChild(row);
+            });
+            $('total-egresos').innerText = '$' + total.toLocaleString('es-CL');
+        }
+        async function agregarEgreso() {
+            const e = { id: crypto.randomUUID(), nombre:'Nuevo egreso', monto:0, diaPago:1 };
+            appState.egresos.push(e); renderizarEgresos(); actualizarGrafica();
+            const { error } = await sb.from('egresos_fijos').insert({ id:e.id, user_id:uid, nombre:e.nombre, monto:e.monto, dia_pago:e.diaPago });
+            if (error) console.error(error); else flash();
+        }
+        async function actualizarEgreso(id, campo, valor) {
+            const e = appState.egresos.find(x=>x.id===id); if(!e) return;
+            e[campo]=valor; renderizarEgresos(); actualizarGrafica();
+            const col = campo==='diaPago' ? 'dia_pago' : campo;
+            const { error } = await sb.from('egresos_fijos').update({ [col]: valor }).eq('id', id);
+            if (error) console.error(error); else flash();
+        }
+        async function eliminarEgreso(id) {
+            appState.egresos = appState.egresos.filter(x=>x.id!==id); renderizarEgresos(); actualizarGrafica();
+            await sb.from('egresos_fijos').delete().eq('id', id); flash();
+        }
+
+        // ===== ABONOS / DEUDA =====
+        function renderizarAbonos() {
+            const c = $('abonos-container'); c.innerHTML=''; let total=0;
+            appState.deuda.abonos.forEach((a) => {
+                total += (Number(a.monto)||0);
+                const row = document.createElement('div'); row.className='row-egreso'; row.style.gridTemplateColumns='1fr 100px 64px 24px';
+                row.innerHTML = `
+                    <input type="text" value="${escapeAttr(a.nota||'')}" onchange="actualizarAbono('${a.id}','nota',this.value)" placeholder="Ej: cuota marzo">
+                    <input type="number" value="${a.monto}" min="0" onchange="actualizarAbono('${a.id}','monto',parseFloat(this.value)||0)" placeholder="Monto">
+                    <input type="number" value="${a.diaPago}" min="1" max="31" onchange="actualizarAbono('${a.id}','diaPago',clampDia(this.value))" title="Día de pago">
+                    <button class="remove-btn" onclick="eliminarAbono('${a.id}')" title="Eliminar">&times;</button>`;
+                c.appendChild(row);
+            });
+            $('total-abonos').innerText = '$' + total.toLocaleString('es-CL');
+            const restante = Math.max(0, (Number(appState.deuda.meta)||0) - total);
+            $('deuda-restante-mini').innerText = '$' + restante.toLocaleString('es-CL');
+        }
+        async function agregarAbono() {
+            const a = { id: crypto.randomUUID(), nota:'', monto:0, diaPago:1 };
+            appState.deuda.abonos.push(a); renderizarAbonos(); actualizarGrafica();
+            const { error } = await sb.from('abonos').insert({ id:a.id, user_id:uid, meta_id:metaId, nota:a.nota, monto:a.monto, fecha:fechaDeDia(a.diaPago) });
+            if (error) console.error(error); else flash();
+        }
+        async function actualizarAbono(id, campo, valor) {
+            const a = appState.deuda.abonos.find(x=>x.id===id); if(!a) return;
+            a[campo]=valor; renderizarAbonos(); actualizarGrafica();
+            const patch = campo==='diaPago' ? { fecha: fechaDeDia(valor) } : { [campo]: valor };
+            const { error } = await sb.from('abonos').update(patch).eq('id', id);
+            if (error) console.error(error); else flash();
+        }
+        async function eliminarAbono(id) {
+            appState.deuda.abonos = appState.deuda.abonos.filter(x=>x.id!==id); renderizarAbonos(); actualizarGrafica();
+            await sb.from('abonos').delete().eq('id', id); flash();
+        }
+        async function actualizarMetaDeuda(valor) {
+            appState.deuda.meta = valor; renderizarAbonos(); actualizarGrafica();
+            const { error } = await sb.from('metas').update({ monto_objetivo: valor }).eq('id', metaId);
+            if (error) console.error(error); else flash();
+        }
+
+        // ===== INGRESOS =====
+        function renderizarIngresos() {
+            const c = $('ingresos-container'); c.innerHTML='';
+            appState.ingresos.sort((a,b)=>a.dia-b.dia);
+            appState.ingresos.forEach((ing) => {
+                const row = document.createElement('div'); row.className='row-ingreso';
+                row.innerHTML = `
+                    <div class="day-cell"><span>Día</span>
+                        <input type="number" min="1" max="31" value="${ing.dia}" onchange="actualizarIngreso('${ing.id}','dia',clampDia(this.value))">
+                    </div>
+                    <input type="number" value="${ing.propinas}" min="0" onchange="actualizarIngreso('${ing.id}','propinas',parseFloat(this.value)||0)" placeholder="0">
+                    <input type="number" value="${ing.turno}" min="0" onchange="actualizarIngreso('${ing.id}','turno',parseFloat(this.value)||0)" placeholder="0">
+                    <button class="remove-btn" onclick="eliminarIngreso('${ing.id}')" title="Eliminar">&times;</button>`;
+                c.appendChild(row);
+            });
+        }
+        function clampDia(valor){ let v=parseInt(valor)||1; return Math.min(31, Math.max(1, v)); }
+        async function agregarIngreso() {
+            const ultimoDia = appState.ingresos.length>0 ? Math.min(31, appState.ingresos[appState.ingresos.length-1].dia+1) : 1;
+            const ing = { id: crypto.randomUUID(), dia:ultimoDia, propinas:0, turno:0 };
+            appState.ingresos.push(ing); renderizarIngresos(); actualizarGrafica();
+            const { error } = await sb.from('ingresos_diarios').insert({ id:ing.id, user_id:uid, fecha:fechaDeDia(ing.dia), propinas:ing.propinas, turno:ing.turno });
+            if (error) console.error(error); else flash();
+        }
+        async function actualizarIngreso(id, campo, valor) {
+            const ing = appState.ingresos.find(i=>i.id===id); if(!ing) return;
+            ing[campo]=valor; if(campo==='dia') renderizarIngresos(); actualizarGrafica();
+            const patch = campo==='dia' ? { fecha: fechaDeDia(valor) } : { [campo]: valor };
+            const { error } = await sb.from('ingresos_diarios').update(patch).eq('id', id);
+            if (error) console.error(error); else flash();
+        }
+        async function eliminarIngreso(id) {
+            appState.ingresos = appState.ingresos.filter(i=>i.id!==id); renderizarIngresos(); actualizarGrafica();
+            await sb.from('ingresos_diarios').delete().eq('id', id); flash();
+        }
+
+        function escapeAttr(str){ return String(str).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+
+        // ===== GRÁFICA PRINCIPAL (idéntica a tu Nazaret) =====
+        function actualizarGrafica() {
+            const ctx = $('financeChart').getContext('2d');
+            let sueldoPorDia={}, propinaPorDia={};
+            for (let i=1;i<=31;i++){ sueldoPorDia[i]=0; propinaPorDia[i]=0; }
+            appState.ingresos.forEach(ing=>{ if(ing.dia>=1&&ing.dia<=31){ sueldoPorDia[ing.dia]+=(Number(ing.turno)||0); propinaPorDia[ing.dia]+=(Number(ing.propinas)||0); }});
+            let egresosPorDia={}; for(let i=1;i<=31;i++) egresosPorDia[i]=[];
+            appState.egresos.forEach(e=>{ const m=Number(e.monto)||0; if(m>0&&e.diaPago>=1&&e.diaPago<=31) egresosPorDia[e.diaPago].push(e); });
+            appState.deuda.abonos.forEach(a=>{ const m=Number(a.monto)||0; if(m>0&&a.diaPago>=1&&a.diaPago<=31) egresosPorDia[a.diaPago].push({ nombre:a.nota?`Abono universidad (${a.nota})`:'Abono universidad', monto:m, esDeuda:true }); });
+
+            const totalSueldo=Object.values(sueldoPorDia).reduce((a,b)=>a+b,0);
+            const totalPropinas=Object.values(propinaPorDia).reduce((a,b)=>a+b,0);
+            const totalAbonosDeuda=appState.deuda.abonos.reduce((a,ab)=>a+(Number(ab.monto)||0),0);
+            const totalEgresos=appState.egresos.reduce((a,e)=>a+(Number(e.monto)||0),0)+totalAbonosDeuda;
+
+            let netoPoints=[{x:0,y:0}], sueldoBrutoPoints=[{x:0,y:0}], propinaBrutoPoints=[{x:0,y:0}];
+            let saldoNeto=0, acumSueldo=0, acumPropina=0, cayoBajoCero=false, diasConCaida=[];
+
+            for (let dia=1;dia<=31;dia++){
+                const iS=sueldoPorDia[dia], iP=propinaPorDia[dia], iD=iS+iP;
+                if(iD>0){ saldoNeto+=iD; acumSueldo+=iS; acumPropina+=iP; }
+                const eh=egresosPorDia[dia];
+                if(eh.length>0){
+                    netoPoints.push({x:dia,y:saldoNeto});
+                    eh.forEach(e=>{ saldoNeto-=(Number(e.monto)||0); netoPoints.push({x:dia,y:saldoNeto,egreso:e.nombre}); if(saldoNeto<0){ cayoBajoCero=true; diasConCaida.push(e.nombre);} });
+                } else if(iD>0){ netoPoints.push({x:dia,y:saldoNeto}); }
+                else { const u=netoPoints[netoPoints.length-1]; if(u.x!==dia) netoPoints.push({x:dia,y:saldoNeto}); }
+                if(iS>0||sueldoBrutoPoints[sueldoBrutoPoints.length-1].x!==dia) sueldoBrutoPoints.push({x:dia,y:acumSueldo});
+                if(iP>0||propinaBrutoPoints[propinaBrutoPoints.length-1].x!==dia) propinaBrutoPoints.push({x:dia,y:acumPropina});
+            }
+            if(netoPoints[netoPoints.length-1].x!==31) netoPoints.push({x:31,y:saldoNeto});
+            if(sueldoBrutoPoints[sueldoBrutoPoints.length-1].x!==31) sueldoBrutoPoints.push({x:31,y:acumSueldo});
+            if(propinaBrutoPoints[propinaBrutoPoints.length-1].x!==31) propinaBrutoPoints.push({x:31,y:acumPropina});
+
+            const totalBruto=totalSueldo+totalPropinas;
+            $('kpi-sueldo').innerText='$'+totalSueldo.toLocaleString('es-CL');
+            $('kpi-propinas').innerText='$'+totalPropinas.toLocaleString('es-CL');
+            $('kpi-bruto').innerText='$'+totalBruto.toLocaleString('es-CL');
+            $('kpi-egresos').innerText='$'+totalEgresos.toLocaleString('es-CL');
+            const kSaldo=$('kpi-saldo'); kSaldo.innerText='$'+saldoNeto.toLocaleString('es-CL'); kSaldo.classList.toggle('neg', saldoNeto<0);
+
+            const aN=$('alerta-negativo'), aO=$('alerta-ok');
+            aN.classList.toggle('show', cayoBajoCero); aO.classList.toggle('show', !cayoBajoCero && totalEgresos>0);
+            if(cayoBajoCero){ aN.innerText=`Saldo negativo al pagar: ${[...new Set(diasConCaida)].join(', ')}.`; }
+
+            let datasets=[
+                { label:'Saldo neto', data:netoPoints, borderColor:COLOR_NETO, backgroundColor:'rgba(122,114,100,0.10)', borderWidth:2.5, fill:true, tension:0.15, pointBackgroundColor:'#f4ede2', pointBorderColor:COLOR_NETO, pointBorderWidth:1.5, pointRadius:0, pointHoverRadius:5, order:1 },
+                { label:'Sueldo acumulado', data:sueldoBrutoPoints, borderColor:COLOR_SUELDO, backgroundColor:'rgba(168,180,201,0.18)', borderWidth:1.5, fill:true, tension:0.15, pointRadius:0, order:3 },
+                { label:'Propinas acumuladas', data:propinaBrutoPoints, borderColor:COLOR_PROPINA, backgroundColor:'rgba(232,184,150,0.18)', borderWidth:1.5, fill:true, tension:0.15, pointRadius:0, order:2 }
+            ];
+
+            if (proyeccionActiva) {
+                const proy = calcularProyeccion(sueldoPorDia, propinaPorDia, egresosPorDia, saldoNeto, acumSueldo, acumPropina);
+                if (proy) {
+                    datasets.push({ label:'Saldo proyectado', data:proy.netoProyectado, borderColor:COLOR_NETO, backgroundColor:'transparent', borderWidth:1.5, borderDash:[5,4], fill:false, tension:0.15, pointRadius:0, order:1 });
+                    datasets.push({ label:'Sueldo proyectado', data:proy.sueldoProyectado, borderColor:COLOR_SUELDO, backgroundColor:'transparent', borderWidth:1, borderDash:[2,3], fill:false, tension:0.15, pointRadius:0, order:3 });
+                    datasets.push({ label:'Propinas proyectadas', data:proy.propinaProyectado, borderColor:COLOR_PROPINA, backgroundColor:'transparent', borderWidth:1, borderDash:[2,3], fill:false, tension:0.15, pointRadius:0, order:3 });
+                    $('proy-dias-restantes').innerText=proy.diasRestantes;
+                    $('proy-prom-propina').innerText='$'+Math.round(proy.promPropina).toLocaleString('es-CL');
+                    $('proy-prom-sueldo').innerText='$'+Math.round(proy.promSueldo).toLocaleString('es-CL');
+                    $('proy-bruto-final').innerText='$'+Math.round(proy.brutoFinal).toLocaleString('es-CL');
+                    const ps=$('proy-saldo-final'); ps.innerText='$'+Math.round(proy.saldoFinal).toLocaleString('es-CL'); ps.classList.toggle('neg', proy.saldoFinal<0);
+                }
+            }
+
+            if (chartInstance) chartInstance.destroy();
+            const lineasVerticales=[];
+            appState.egresos.forEach((e,idx)=>{ const m=Number(e.monto)||0; if(m>0&&e.diaPago>=1&&e.diaPago<=31) lineasVerticales.push({ dia:e.diaPago, color:PALETA_EGRESOS[idx%PALETA_EGRESOS.length] }); });
+
+            chartInstance = new Chart(ctx, {
+                type:'scatter', data:{datasets},
+                options:{ responsive:true, maintainAspectRatio:false, showLine:true, interaction:{mode:'nearest',intersect:false},
+                    scales:{
+                        x:{ type:'linear', position:'bottom', min:0, max:31, title:{display:true,text:'Día del mes',font:{family:"'IBM Plex Mono',monospace",size:11},color:'#8a8175'}, ticks:{stepSize:1,font:{family:"'IBM Plex Mono',monospace",size:10},color:'#8a8175'}, grid:{color:'#e4d9c8',drawTicks:false} },
+                        y:{ title:{display:true,text:'Monto (CLP)',font:{family:"'IBM Plex Mono',monospace",size:11},color:'#8a8175'}, ticks:{font:{family:"'IBM Plex Mono',monospace",size:10},color:'#8a8175',callback:v=>'$'+v.toLocaleString('es-CL')}, grid:{color:'#e4d9c8',drawTicks:false} }
+                    },
+                    plugins:{
+                        legend:{ position:'bottom', labels:{font:{family:"'IBM Plex Mono',monospace",size:10},color:'#4a443d',boxWidth:10,boxHeight:10,usePointStyle:true,pointStyle:'circle'} },
+                        tooltip:{ backgroundColor:'#4a443d', titleFont:{family:"'IBM Plex Mono',monospace",size:11}, bodyFont:{family:"'IBM Plex Mono',monospace",size:11}, callbacks:{ label:(c)=>c.dataset.label+': $'+c.parsed.y.toLocaleString('es-CL') } }
+                    }
+                },
+                plugins:[{ id:'lineasPago', afterDraw:(chart)=>{ const {ctx,chartArea,scales}=chart; ctx.save(); lineasVerticales.forEach(l=>{ const x=scales.x.getPixelForValue(l.dia); if(x<chartArea.left||x>chartArea.right) return; ctx.strokeStyle=l.color; ctx.lineWidth=1; ctx.setLineDash([3,4]); ctx.globalAlpha=0.6; ctx.beginPath(); ctx.moveTo(x,chartArea.top); ctx.lineTo(x,chartArea.bottom); ctx.stroke(); }); ctx.restore(); } }]
+            });
+            actualizarGraficaDeuda();
+        }
+
+        function actualizarGraficaDeuda() {
+            const meta=Number(appState.deuda.meta)||0;
+            const abonos=[...appState.deuda.abonos].filter(a=>(Number(a.monto)||0)>0&&a.diaPago>=1&&a.diaPago<=31).sort((a,b)=>a.diaPago-b.diaPago);
+            const totalAbonado=abonos.reduce((a,ab)=>a+(Number(ab.monto)||0),0);
+            const restante=meta-totalAbonado;
+            const porcentaje=meta>0?Math.min(100,Math.max(0,(totalAbonado/meta)*100)):0;
+            $('deuda-kpi-meta').innerText='$'+meta.toLocaleString('es-CL');
+            $('deuda-kpi-abonado').innerText='$'+totalAbonado.toLocaleString('es-CL');
+            const kR=$('deuda-kpi-restante'); kR.innerText='$'+Math.max(0,restante).toLocaleString('es-CL'); kR.classList.toggle('neg',restante>0); kR.classList.toggle('pos',restante<=0);
+            $('deuda-porcentaje').innerText=Math.round(porcentaje)+'%';
+            $('deuda-barra').style.width=porcentaje+'%';
+            $('deuda-barra').style.background = (restante<=0&&meta>0) ? 'var(--positivo)' : 'var(--deuda)';
+
+            let saldoPendiente=meta; let pts=[{x:0,y:saldoPendiente}];
+            abonos.forEach(ab=>{ pts.push({x:ab.diaPago,y:saldoPendiente}); saldoPendiente-=(Number(ab.monto)||0); pts.push({x:ab.diaPago,y:saldoPendiente}); });
+            if(pts[pts.length-1].x!==31) pts.push({x:31,y:saldoPendiente});
+
+            const ctx=$('deudaChart').getContext('2d');
+            if(deudaChartInstance) deudaChartInstance.destroy();
+            deudaChartInstance = new Chart(ctx, {
+                type:'scatter', data:{ datasets:[
+                    { label:'Saldo pendiente', data:pts, borderColor:COLOR_DEUDA, backgroundColor:'rgba(184,160,192,0.14)', borderWidth:2.5, fill:true, tension:0.1, pointRadius:0, pointHoverRadius:5, order:1 },
+                    { label:'Saldada', data:[{x:0,y:0},{x:31,y:0}], borderColor:'#cfc6b8', borderWidth:1, borderDash:[3,3], fill:false, pointRadius:0, order:2 }
+                ]},
+                options:{ responsive:true, maintainAspectRatio:false, showLine:true, interaction:{mode:'nearest',intersect:false},
+                    scales:{
+                        x:{ type:'linear', position:'bottom', min:0, max:31, title:{display:true,text:'Día del mes',font:{family:"'IBM Plex Mono',monospace",size:11},color:'#8a8175'}, ticks:{stepSize:1,font:{family:"'IBM Plex Mono',monospace",size:10},color:'#8a8175'}, grid:{color:'#e4d9c8',drawTicks:false} },
+                        y:{ min:Math.min(0,saldoPendiente), title:{display:true,text:'Saldo pendiente (CLP)',font:{family:"'IBM Plex Mono',monospace",size:11},color:'#8a8175'}, ticks:{font:{family:"'IBM Plex Mono',monospace",size:10},color:'#8a8175',callback:v=>'$'+v.toLocaleString('es-CL')}, grid:{color:'#e4d9c8',drawTicks:false} }
+                    },
+                    plugins:{ legend:{ position:'bottom', labels:{font:{family:"'IBM Plex Mono',monospace",size:10},color:'#4a443d',boxWidth:10,boxHeight:10,usePointStyle:true,pointStyle:'circle'} },
+                        tooltip:{ backgroundColor:'#4a443d', titleFont:{family:"'IBM Plex Mono',monospace",size:11}, bodyFont:{family:"'IBM Plex Mono',monospace",size:11}, callbacks:{ label:(c)=>c.dataset.label+': $'+c.parsed.y.toLocaleString('es-CL') } } }
+                }
+            });
+        }
+
+        function toggleProyeccion() {
+            proyeccionActiva=!proyeccionActiva;
+            $('btn-proyectar').innerText = proyeccionActiva ? 'Quitar proyección' : 'Proyectar mes';
+            $('proyeccion-detalle').style.display = proyeccionActiva ? 'block' : 'none';
+            actualizarGrafica();
+        }
+        function promedioRecortado(v){ if(v.length===0) return 0; if(v.length<4) return v.reduce((a,b)=>a+b,0)/v.length; const o=[...v].sort((a,b)=>a-b).slice(1,-1); return o.reduce((a,b)=>a+b,0)/o.length; }
+        function calcularProyeccion(sueldoPorDia, propinaPorDia, egresosPorDia, saldoNetoActual, acumSueldoActual, acumPropinaActual) {
+            const dcd=appState.ingresos.map(i=>i.dia).filter(d=>d>=1&&d<=31); if(dcd.length===0) return null;
+            const hoy=Math.max(...dcd); const diasRestantes=31-hoy; if(diasRestantes<=0) return null;
+            const pp=[]; for(let d=1;d<=hoy;d++) if(propinaPorDia[d]>0) pp.push(propinaPorDia[d]);
+            const promPropina= pp.length>0 ? pp.reduce((a,b)=>a+b,0)/pp.length : 0;
+            const sp=[]; for(let d=1;d<=hoy;d++) if(sueldoPorDia[d]>0) sp.push(sueldoPorDia[d]);
+            const promSueldo=promedioRecortado(sp);
+            let netoProyectado=[{x:hoy,y:saldoNetoActual}], sueldoProyectado=[{x:hoy,y:acumSueldoActual}], propinaProyectado=[{x:hoy,y:acumPropinaActual}];
+            let saldoProy=saldoNetoActual, acumS=acumSueldoActual, acumP=acumPropinaActual;
+            for(let dia=hoy+1;dia<=31;dia++){
+                saldoProy+=promSueldo+promPropina; acumS+=promSueldo; acumP+=promPropina;
+                const eh=egresosPorDia[dia]||[];
+                if(eh.length>0){ netoProyectado.push({x:dia,y:saldoProy}); eh.forEach(e=>{ saldoProy-=(Number(e.monto)||0); netoProyectado.push({x:dia,y:saldoProy}); }); }
+                else netoProyectado.push({x:dia,y:saldoProy});
+                sueldoProyectado.push({x:dia,y:acumS}); propinaProyectado.push({x:dia,y:acumP});
+            }
+            return { diasRestantes, promPropina, promSueldo, brutoFinal:acumS+acumP, saldoFinal:saldoProy, netoProyectado, sueldoProyectado, propinaProyectado };
+        }
+
+        // Exponer handlers para los onclick/onchange del HTML
+        Object.assign(window, { agregarEgreso, actualizarEgreso, eliminarEgreso, agregarAbono, actualizarAbono, eliminarAbono, actualizarMetaDeuda, agregarIngreso, actualizarIngreso, eliminarIngreso, clampDia, toggleProyeccion });
 
         if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
         refreshSession();
