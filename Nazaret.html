@@ -1,0 +1,1302 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Financiero Mensual</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --papiro: #f4ede2;
+            --papiro-suave: #efe6d8;
+            --ink: #4a443d;
+            --ink-soft: #8a8175;
+            --line: #e4d9c8;
+
+            --sueldo: #a8b4c9;
+            --propina: #e8b896;
+            --egreso: #d9a8a0;
+            --deuda: #b8a0c0;
+            --positivo: #a8c0a0;
+            --negativo: #c97f6f;
+        }
+
+        * { box-sizing: border-box; }
+
+        html, body {
+            margin: 0;
+            background: var(--papiro);
+            color: var(--ink);
+            font-family: 'Inter', system-ui, sans-serif;
+            font-size: 14px;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .wrap {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 64px 40px 100px;
+        }
+
+        /* Header */
+        header.top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 56px;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .eyebrow {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: var(--ink-soft);
+            margin: 0 0 10px;
+        }
+
+        h1 {
+            font-family: 'Source Serif 4', serif;
+            font-weight: 600;
+            font-size: 38px;
+            margin: 0;
+            letter-spacing: -0.01em;
+        }
+
+        .top-actions { display: flex; gap: 24px; }
+
+        button.action {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 0.06em;
+            border: none;
+            background: transparent;
+            color: var(--ink-soft);
+            padding: 0 0 4px;
+            cursor: pointer;
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--ink-soft);
+            transition: color 0.2s, border-color 0.2s;
+        }
+        button.action:hover { color: var(--ink); border-color: var(--ink); }
+        button.action.primary { color: var(--ink); border-color: var(--ink); }
+
+        /* Secciones fluidas, sin cajas */
+        section {
+            margin-bottom: 64px;
+        }
+
+        .section-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            font-family: 'Source Serif 4', serif;
+            font-size: 19px;
+            font-weight: 600;
+            margin: 0;
+            color: var(--ink);
+        }
+        h2 .tag {
+            display: inline-block;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+
+        button.add {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            background: none;
+            border: none;
+            color: var(--ink-soft);
+            cursor: pointer;
+            padding: 0;
+            transition: color 0.2s;
+        }
+        button.add:hover { color: var(--ink); }
+
+        /* Inputs sin bordes, solo underline en focus */
+        input[type="number"], input[type="text"] {
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid transparent;
+            padding: 6px 4px;
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            color: var(--ink);
+            transition: border-color 0.2s;
+            width: 100%;
+        }
+        input:hover { border-bottom-color: var(--line); }
+        input:focus {
+            outline: none;
+            border-bottom-color: var(--ink);
+        }
+        input[type="number"] { text-align: right; font-family: 'IBM Plex Mono', monospace; }
+
+        /* Filas de datos: separadas por línea fina, sin caja */
+        .egresos-head, .ingresos-head {
+            display: grid;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--ink-soft);
+            padding: 0 4px 10px;
+            border-bottom: 1px solid var(--line);
+            margin-bottom: 4px;
+        }
+        .egresos-head { grid-template-columns: 1fr 100px 64px 14px 24px; }
+        .egresos-head span:nth-child(2) { text-align: right; }
+        .egresos-head span:nth-child(3) { text-align: center; }
+
+        .ingresos-head { grid-template-columns: 70px 1fr 1fr 24px; }
+        .ingresos-head span:nth-child(2), .ingresos-head span:nth-child(3) { text-align: right; }
+
+        .row-egreso {
+            display: grid;
+            grid-template-columns: 1fr 100px 64px 14px 24px;
+            gap: 10px;
+            align-items: center;
+            padding: 9px 4px;
+            border-bottom: 1px solid var(--papiro-suave);
+        }
+        .row-egreso input[name="dia"] { text-align: center; }
+        .color-chip { width: 8px; height: 8px; border-radius: 50%; margin: 0 auto; }
+
+        .row-ingreso {
+            display: grid;
+            grid-template-columns: 70px 1fr 1fr 24px;
+            gap: 10px;
+            align-items: center;
+            padding: 9px 4px;
+            border-bottom: 1px solid var(--papiro-suave);
+        }
+        .row-ingreso .day-cell { display: flex; align-items: center; gap: 6px; }
+        .day-cell span { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--ink-soft); }
+        .day-cell input { text-align: center; }
+
+        .remove-btn {
+            background: none;
+            border: none;
+            color: var(--line);
+            font-size: 17px;
+            line-height: 1;
+            cursor: pointer;
+            transition: color 0.2s;
+            padding: 0;
+        }
+        .remove-btn:hover { color: var(--negativo); }
+
+        .totals {
+            margin-top: 18px;
+            padding-top: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+        }
+        .totals .label {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--ink-soft);
+        }
+        .totals .value {
+            font-family: 'Source Serif 4', serif;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .totals .value.neg { color: var(--negativo); }
+        .totals .value.pos { color: var(--positivo); }
+
+        #ingresos-container { max-height: 480px; overflow-y: auto; }
+        #ingresos-container::-webkit-scrollbar { width: 3px; }
+        #ingresos-container::-webkit-scrollbar-thumb { background: var(--line); border-radius: 2px; }
+
+        /* KPIs como métricas editoriales flotantes, sin grid de celdas */
+        .kpi-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 48px;
+            margin-bottom: 12px;
+        }
+        .kpi {
+            min-width: 120px;
+        }
+        .kpi .label {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--ink-soft);
+            margin-bottom: 8px;
+        }
+        .kpi .value {
+            font-family: 'Source Serif 4', serif;
+            font-size: 26px;
+            font-weight: 600;
+        }
+        .kpi .value.sueldo { color: var(--sueldo); }
+        .kpi .value.propina { color: var(--propina); }
+        .kpi .value.neg { color: var(--negativo); }
+        .kpi .value.pos { color: var(--positivo); }
+        
+        /* Grid para las tarjetas principales proporcionales */
+        .kpi-grid-horizontal {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 32px;
+            margin-bottom: 32px;
+            align-items: start;
+        }
+
+        .alert {
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            padding: 0 0 0 16px;
+            border-left: 2px solid;
+            margin-bottom: 28px;
+            display: none;
+            color: var(--ink);
+        }
+        .alert.show { display: block; }
+        .alert.warn { border-color: var(--negativo); }
+        .alert.ok { border-color: var(--positivo); }
+
+        .chart-wrap { position: relative; height: 420px; width: 100%; }
+
+        .meta-deuda-row {
+            display: flex;
+            gap: 48px;
+            align-items: baseline;
+            margin-bottom: 24px;
+        }
+        .meta-deuda-row .field label {
+            display: block;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--ink-soft);
+            margin-bottom: 8px;
+        }
+        .meta-deuda-row .field input {
+            font-family: 'Source Serif 4', serif;
+            font-size: 20px;
+            font-weight: 600;
+            text-align: left;
+            padding: 0;
+        }
+
+        .barra-progreso {
+            background: var(--papiro-suave);
+            border-radius: 2px;
+            height: 6px;
+            overflow: hidden;
+            margin-bottom: 32px;
+        }
+        .barra-progreso .fill {
+            background: var(--deuda);
+            height: 100%;
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+
+        .save-flash { color: var(--positivo) !important; border-color: var(--positivo) !important; }
+
+        /* Layout: cada fila empareja una tabla de entrada con la gráfica que alimenta */
+        .fila {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 64px;
+            align-items: start;
+            margin-bottom: 64px;
+        }
+        @media (max-width: 1020px) {
+            .fila { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <script id="embedded-state" type="application/json">null</script>
+
+    <div class="wrap">
+
+        <header class="top">
+            <div>
+                <p class="eyebrow">Cierre Mensual · Operación Personal</p>
+                <h1>Panel Financiero</h1>
+            </div>
+            <div class="top-actions">
+                <button class="action" id="btn-guardar" onclick="guardarLocal()">Guardar estado</button>
+                <button class="action primary" onclick="descargarHTML()">Descargar mes cerrado</button>
+            </div>
+        </header>
+
+        <!-- Fila 1: Egresos fijos (Izquierda) y KPIs horizontales (Derecha) -->
+        <div class="fila">
+            <!-- Izquierda: Formulario y datos estructurados -->
+            <div>
+                <section>
+                    <div class="section-head">
+                        <h2><span class="tag" style="background:var(--egreso)"></span>Egresos fijos</h2>
+                        <button class="add" onclick="agregarEgreso()">+ Añadir</button>
+                    </div>
+                    <div class="egresos-head">
+                        <span>Nombre</span>
+                        <span>Monto</span>
+                        <span>Día pago</span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                    <div id="egresos-container"></div>
+                    <div class="totals">
+                        <span class="label">Total egresos</span>
+                        <span id="total-egresos" class="value neg">$0</span>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Derecha: KPIs proporcionales y visualizaciones -->
+            <div>
+                <!-- Grilla horizontal y proporcional para las tarjetas -->
+                <div class="kpi-grid-horizontal">
+                    <div class="kpi">
+                        <div class="label">Sueldo bruto</div>
+                        <div class="value sueldo" id="kpi-sueldo">$0</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="label">Propinas brutas</div>
+                        <div class="value propina" id="kpi-propinas">$0</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="label">Total bruto</div>
+                        <div class="value" id="kpi-bruto">$0</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="label">Egresos fijos</div>
+                        <div class="value" id="kpi-egresos">$0</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="label">Saldo neto final</div>
+                        <div class="value" id="kpi-saldo">$0</div>
+                    </div>
+                </div>
+
+                <div id="alerta-negativo" class="alert warn">
+                    El saldo neto cae por debajo de cero en alguna fecha de pago.
+                </div>
+                <div id="alerta-ok" class="alert ok">
+                    El saldo neto se mantiene positivo durante todo el mes.
+                </div>
+            </div>
+        </div>
+
+        <!-- Fila 2: Ingresos diarios, al lado de la gráfica de Evolución del mes -->
+        <div class="fila">
+            <div>
+                <section>
+                    <div class="section-head">
+                        <h2><span class="tag" style="background:var(--positivo)"></span>Ingresos diarios</h2>
+                        <button class="add" onclick="agregarIngreso()">+ Añadir</button>
+                    </div>
+                    <div class="ingresos-head">
+                        <span>Día</span>
+                        <span>Propinas</span>
+                        <span>Turno</span>
+                        <span></span>
+                    </div>
+                    <div id="ingresos-container"></div>
+                </section>
+            </div>
+
+            <div>
+                <div class="section-head">
+                    <h2>Evolución del mes</h2>
+                    <button class="add" id="btn-proyectar" onclick="toggleProyeccion()">Proyectar mes</button>
+                </div>
+                <div id="proyeccion-detalle" style="display:none; margin-bottom:24px;">
+                    <div class="kpi-row">
+                        <div class="kpi">
+                            <div class="label">Días restantes</div>
+                            <div class="value" id="proy-dias-restantes" style="font-size:20px;">0</div>
+                        </div>
+                        <div class="kpi">
+                            <div class="label">Prom. propina/día</div>
+                            <div class="value propina" id="proy-prom-propina" style="font-size:20px;">$0</div>
+                        </div>
+                        <div class="kpi">
+                            <div class="label">Prom. sueldo/día</div>
+                            <div class="value sueldo" id="proy-prom-sueldo" style="font-size:20px;">$0</div>
+                        </div>
+                        <div class="kpi">
+                            <div class="label">Bruto proyectado</div>
+                            <div class="value" id="proy-bruto-final" style="font-size:20px;">$0</div>
+                        </div>
+                        <div class="kpi">
+                            <div class="label">Saldo proyectado</div>
+                            <div class="value" id="proy-saldo-final" style="font-size:20px;">$0</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-wrap" style="height:560px;">
+                    <canvas id="financeChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fila 3: Abono a la universidad, al lado de su propia gráfica de deuda -->
+        <div class="fila">
+            <div>
+                <section>
+                    <div class="section-head">
+                        <h2><span class="tag" style="background:var(--deuda)"></span>Abono a la universidad</h2>
+                        <button class="add" onclick="agregarAbono()">+ Añadir abono</button>
+                    </div>
+
+                    <div class="meta-deuda-row">
+                        <div class="field">
+                            <label>Meta total de la deuda</label>
+                            <input type="number" id="deuda-meta" value="1000000" min="0" onchange="actualizarMetaDeuda(parseFloat(this.value) || 0)">
+                        </div>
+                        <div class="field">
+                            <label>Restante</label>
+                            <div id="deuda-restante-mini" style="font-family:'Source Serif 4', serif; font-size:20px; font-weight:600; color:var(--negativo);">$1.000.000</div>
+                        </div>
+                    </div>
+
+                    <div class="egresos-head" style="grid-template-columns: 1fr 100px 64px 24px;">
+                        <span>Nota</span>
+                        <span>Monto</span>
+                        <span>Día pago</span>
+                        <span></span>
+                    </div>
+                    <div id="abonos-container"></div>
+                    <div class="totals">
+                        <span class="label">Total abonado</span>
+                        <span id="total-abonos" class="value" style="color:var(--deuda);">$0</span>
+                    </div>
+                </section>
+            </div>
+
+            <div>
+                <div class="section-head">
+                    <h2><span class="tag" style="background:var(--deuda)"></span>Deuda universitaria</h2>
+                </div>
+
+                <div class="kpi-row">
+                    <div class="kpi">
+                        <div class="label">Meta total</div>
+                        <div class="value" id="deuda-kpi-meta">$0</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="label">Abonado a la fecha</div>
+                        <div class="value" style="color:var(--deuda);" id="deuda-kpi-abonado">$0</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="label">Restante</div>
+                        <div class="value neg" id="deuda-kpi-restante">$0</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="label">Progreso</div>
+                        <div class="value" id="deuda-porcentaje" style="color:var(--deuda);">0%</div>
+                    </div>
+                </div>
+
+                <div class="barra-progreso"><div class="fill" id="deuda-barra"></div></div>
+
+                <div class="chart-wrap" style="height:380px;">
+                    <canvas id="deudaChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- 1. ESTADO ---
+        let appState = {
+            egresos: [
+                { id: crypto.randomUUID(), nombre: 'Arriendo', monto: 480000, diaPago: 30 },
+                { id: crypto.randomUUID(), nombre: 'Gas', monto: 25000, diaPago: 5 }
+            ],
+            ingresos: [
+                { id: crypto.randomUUID(), dia: 1, propinas: 0, turno: 0 }
+            ],
+            deuda: {
+                meta: 1000000,
+                abonos: []
+            }
+        };
+
+        let chartInstance = null;
+        let deudaChartInstance = null;
+        let proyeccionActiva = false;
+
+        const COLOR_DEUDA = '#b8a0c0';
+
+        const PALETA_EGRESOS = [
+            '#d9a8a0', // egreso pastel
+            '#b8a0c0', // ciruela pastel
+            '#e8c98a', // ocre pastel
+            '#9cc0b8', // teal pastel
+            '#c97f6f', // rojo suave
+            '#a8b4c9'  // azul grisaceo pastel
+        ];
+
+        const COLOR_SUELDO = '#a8b4c9';
+        const COLOR_PROPINA = '#e8b896';
+        const COLOR_NETO = '#7a7264';
+
+        // --- 2. INIT ---
+        function inicializar() {
+            const embeddedData = document.getElementById('embedded-state').textContent;
+            if (embeddedData && embeddedData !== "null") {
+                try { appState = JSON.parse(embeddedData); }
+                catch (e) { console.error("Error leyendo estado incrustado", e); }
+            } else {
+                const localData = localStorage.getItem('finanzas_alejo');
+                if (localData) {
+                    try { appState = JSON.parse(localData); }
+                    catch (e) { console.error("Error leyendo estado local", e); }
+                }
+            }
+
+            // Migración: si algún egreso no tiene diaPago (formato anterior), asignar día 1
+            appState.egresos.forEach(e => {
+                if (e.diaPago === undefined || e.diaPago === null) e.diaPago = 1;
+            });
+
+            // Migración: si no existe estructura de deuda (formato anterior), crearla
+            if (!appState.deuda) {
+                appState.deuda = { meta: 1000000, abonos: [] };
+            }
+            if (!Array.isArray(appState.deuda.abonos)) appState.deuda.abonos = [];
+
+            renderizarEgresos();
+            renderizarAbonos();
+            renderizarIngresos();
+            actualizarGrafica();
+        }
+
+        // --- 3. EGRESOS ---
+        function renderizarEgresos() {
+            const container = document.getElementById('egresos-container');
+            container.innerHTML = '';
+            let total = 0;
+
+            appState.egresos.forEach((egreso, index) => {
+                total += (Number(egreso.monto) || 0);
+                const color = PALETA_EGRESOS[index % PALETA_EGRESOS.length];
+                const row = document.createElement('div');
+                row.className = 'row-egreso';
+                row.innerHTML = `
+                    <input type="text" value="${escapeAttr(egreso.nombre)}" onchange="actualizarEgreso('${egreso.id}', 'nombre', this.value)" placeholder="Nombre">
+                    <input type="number" value="${egreso.monto}" min="0" onchange="actualizarEgreso('${egreso.id}', 'monto', parseFloat(this.value) || 0)" placeholder="Monto">
+                    <input type="number" name="dia" value="${egreso.diaPago}" min="1" max="31" onchange="actualizarEgreso('${egreso.id}', 'diaPago', clampDia(this.value))" title="Día de pago">
+                    <span class="color-chip" style="background:${color}" title="Color en gráfica"></span>
+                    <button class="remove-btn" onclick="eliminarEgreso('${egreso.id}')" title="Eliminar">&times;</button>
+                `;
+                container.appendChild(row);
+            });
+
+            document.getElementById('total-egresos').innerText = '$' + total.toLocaleString('es-CL');
+        }
+
+        function agregarEgreso() {
+            appState.egresos.push({ id: crypto.randomUUID(), nombre: 'Nuevo egreso', monto: 0, diaPago: 1 });
+            renderizarEgresos();
+            actualizarGrafica();
+        }
+
+        function actualizarEgreso(id, campo, valor) {
+            const egreso = appState.egresos.find(e => e.id === id);
+            if (egreso) {
+                egreso[campo] = valor;
+                renderizarEgresos();
+                actualizarGrafica();
+            }
+        }
+
+        function eliminarEgreso(id) {
+            appState.egresos = appState.egresos.filter(e => e.id !== id);
+            renderizarEgresos();
+            actualizarGrafica();
+        }
+
+        // --- ABONOS A LA DEUDA UNIVERSITARIA ---
+        function renderizarAbonos() {
+            const container = document.getElementById('abonos-container');
+            container.innerHTML = '';
+            let totalAbonado = 0;
+
+            appState.deuda.abonos.forEach((abono) => {
+                totalAbonado += (Number(abono.monto) || 0);
+                const row = document.createElement('div');
+                row.className = 'row-egreso';
+                row.style.gridTemplateColumns = '1fr 100px 64px 24px';
+                row.innerHTML = `
+                    <input type="text" value="${escapeAttr(abono.nota || '')}" onchange="actualizarAbono('${abono.id}', 'nota', this.value)" placeholder="Ej: cuota marzo">
+                    <input type="number" value="${abono.monto}" min="0" onchange="actualizarAbono('${abono.id}', 'monto', parseFloat(this.value) || 0)" placeholder="Monto">
+                    <input type="number" value="${abono.diaPago}" min="1" max="31" onchange="actualizarAbono('${abono.id}', 'diaPago', clampDia(this.value))" title="Día de pago">
+                    <button class="remove-btn" onclick="eliminarAbono('${abono.id}')" title="Eliminar">&times;</button>
+                `;
+                container.appendChild(row);
+            });
+
+            document.getElementById('total-abonos').innerText = '$' + totalAbonado.toLocaleString('es-CL');
+
+            const meta = Number(appState.deuda.meta) || 0;
+            const restante = Math.max(0, meta - totalAbonado);
+            document.getElementById('deuda-restante-mini').innerText = '$' + restante.toLocaleString('es-CL');
+        }
+
+        function agregarAbono() {
+            appState.deuda.abonos.push({ id: crypto.randomUUID(), nota: '', monto: 0, diaPago: 1 });
+            renderizarAbonos();
+            actualizarGrafica();
+        }
+
+        function actualizarAbono(id, campo, valor) {
+            const abono = appState.deuda.abonos.find(a => a.id === id);
+            if (abono) {
+                abono[campo] = valor;
+                renderizarAbonos();
+                actualizarGrafica();
+            }
+        }
+
+        function eliminarAbono(id) {
+            appState.deuda.abonos = appState.deuda.abonos.filter(a => a.id !== id);
+            renderizarAbonos();
+            actualizarGrafica();
+        }
+
+        function actualizarMetaDeuda(valor) {
+            appState.deuda.meta = valor;
+            renderizarAbonos();
+            actualizarGrafica();
+        }
+
+        // --- 4. INGRESOS ---
+        function renderizarIngresos() {
+            const container = document.getElementById('ingresos-container');
+            container.innerHTML = '';
+
+            appState.ingresos.sort((a, b) => a.dia - b.dia);
+
+            appState.ingresos.forEach((ingreso) => {
+                const row = document.createElement('div');
+                row.className = 'row-ingreso';
+                row.innerHTML = `
+                    <div class="day-cell">
+                        <span>Día</span>
+                        <input type="number" min="1" max="31" value="${ingreso.dia}" onchange="actualizarIngreso('${ingreso.id}', 'dia', clampDia(this.value))">
+                    </div>
+                    <input type="number" value="${ingreso.propinas}" min="0" onchange="actualizarIngreso('${ingreso.id}', 'propinas', parseFloat(this.value) || 0)" placeholder="0">
+                    <input type="number" value="${ingreso.turno}" min="0" onchange="actualizarIngreso('${ingreso.id}', 'turno', parseFloat(this.value) || 0)" placeholder="0">
+                    <button class="remove-btn" onclick="eliminarIngreso('${ingreso.id}')" title="Eliminar">&times;</button>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        function clampDia(valor) {
+            let v = parseInt(valor) || 1;
+            return Math.min(31, Math.max(1, v));
+        }
+
+        function agregarIngreso() {
+            const ultimoDia = appState.ingresos.length > 0
+                ? Math.min(31, appState.ingresos[appState.ingresos.length - 1].dia + 1)
+                : 1;
+            appState.ingresos.push({ id: crypto.randomUUID(), dia: ultimoDia, propinas: 0, turno: 0 });
+            renderizarIngresos();
+            actualizarGrafica();
+        }
+
+        function actualizarIngreso(id, campo, valor) {
+            const ingreso = appState.ingresos.find(i => i.id === id);
+            if (ingreso) {
+                ingreso[campo] = valor;
+                if (campo === 'dia') renderizarIngresos();
+                actualizarGrafica();
+            }
+        }
+
+        function eliminarIngreso(id) {
+            appState.ingresos = appState.ingresos.filter(i => i.id !== id);
+            renderizarIngresos();
+            actualizarGrafica();
+        }
+
+        // --- 5. LÓGICA Y GRÁFICA ---
+        function actualizarGrafica() {
+            const ctx = document.getElementById('financeChart').getContext('2d');
+
+            // Ingresos por día, separados en sueldo (turno) y propinas
+            let sueldoPorDia = {};
+            let propinaPorDia = {};
+            for (let i = 1; i <= 31; i++) { sueldoPorDia[i] = 0; propinaPorDia[i] = 0; }
+
+            appState.ingresos.forEach(ing => {
+                if (ing.dia >= 1 && ing.dia <= 31) {
+                    sueldoPorDia[ing.dia] += (Number(ing.turno) || 0);
+                    propinaPorDia[ing.dia] += (Number(ing.propinas) || 0);
+                }
+            });
+
+            // Egresos agrupados por día de pago
+            let egresosPorDia = {};
+            for (let i = 1; i <= 31; i++) egresosPorDia[i] = [];
+            appState.egresos.forEach(e => {
+                const monto = Number(e.monto) || 0;
+                if (monto > 0 && e.diaPago >= 1 && e.diaPago <= 31) {
+                    egresosPorDia[e.diaPago].push(e);
+                }
+            });
+
+            // Abonos a la deuda universitaria: cuentan como egreso en el saldo neto,
+            // pero no se muestran como línea destacada en el gráfico principal.
+            appState.deuda.abonos.forEach(a => {
+                const monto = Number(a.monto) || 0;
+                if (monto > 0 && a.diaPago >= 1 && a.diaPago <= 31) {
+                    egresosPorDia[a.diaPago].push({
+                        nombre: a.nota ? `Abono universidad (${a.nota})` : 'Abono universidad',
+                        monto: monto,
+                        esDeuda: true
+                    });
+                }
+            });
+
+            const totalSueldo = Object.values(sueldoPorDia).reduce((a, b) => a + b, 0);
+            const totalPropinas = Object.values(propinaPorDia).reduce((a, b) => a + b, 0);
+            const totalAbonosDeuda = appState.deuda.abonos.reduce((a, ab) => a + (Number(ab.monto) || 0), 0);
+            const totalEgresos = appState.egresos.reduce((a, e) => a + (Number(e.monto) || 0), 0) + totalAbonosDeuda;
+
+            // Series
+            let netoPoints = [{ x: 0, y: 0 }];
+            let sueldoBrutoPoints = [{ x: 0, y: 0 }];
+            let propinaBrutoPoints = [{ x: 0, y: 0 }];
+
+            let saldoNeto = 0;
+            let acumSueldo = 0;
+            let acumPropina = 0;
+            let cayoBajoCero = false;
+            let diasConCaida = [];
+
+            for (let dia = 1; dia <= 31; dia++) {
+                const ingresoSueldo = sueldoPorDia[dia];
+                const ingresoPropina = propinaPorDia[dia];
+                const ingresoDia = ingresoSueldo + ingresoPropina;
+
+                // 1. Sumar ingresos del día al saldo neto y a las series brutas
+                if (ingresoDia > 0) {
+                    saldoNeto += ingresoDia;
+                    acumSueldo += ingresoSueldo;
+                    acumPropina += ingresoPropina;
+                }
+
+                // 2. Aplicar egresos cuya fecha de pago es hoy, en orden de prioridad (orden de la lista)
+                const egresosHoy = egresosPorDia[dia];
+                if (egresosHoy.length > 0) {
+                    netoPoints.push({ x: dia, y: saldoNeto });
+
+                    egresosHoy.forEach(e => {
+                        saldoNeto -= (Number(e.monto) || 0);
+                        netoPoints.push({ x: dia, y: saldoNeto, egreso: e.nombre });
+                        if (saldoNeto < 0) {
+                            cayoBajoCero = true;
+                            diasConCaida.push(e.nombre);
+                        }
+                    });
+                } else if (ingresoDia > 0) {
+                    netoPoints.push({ x: dia, y: saldoNeto });
+                } else {
+                    const ultimo = netoPoints[netoPoints.length - 1];
+                    if (ultimo.x !== dia) netoPoints.push({ x: dia, y: saldoNeto });
+                }
+
+                if (ingresoSueldo > 0 || sueldoBrutoPoints[sueldoBrutoPoints.length - 1].x !== dia) {
+                    sueldoBrutoPoints.push({ x: dia, y: acumSueldo });
+                }
+                if (ingresoPropina > 0 || propinaBrutoPoints[propinaBrutoPoints.length - 1].x !== dia) {
+                    propinaBrutoPoints.push({ x: dia, y: acumPropina });
+                }
+            }
+
+            if (netoPoints[netoPoints.length - 1].x !== 31) netoPoints.push({ x: 31, y: saldoNeto });
+            if (sueldoBrutoPoints[sueldoBrutoPoints.length - 1].x !== 31) sueldoBrutoPoints.push({ x: 31, y: acumSueldo });
+            if (propinaBrutoPoints[propinaBrutoPoints.length - 1].x !== 31) propinaBrutoPoints.push({ x: 31, y: acumPropina });
+
+            const totalBruto = totalSueldo + totalPropinas;
+
+            // --- KPIs ---
+            document.getElementById('kpi-sueldo').innerText = '$' + totalSueldo.toLocaleString('es-CL');
+            document.getElementById('kpi-propinas').innerText = '$' + totalPropinas.toLocaleString('es-CL');
+            document.getElementById('kpi-bruto').innerText = '$' + totalBruto.toLocaleString('es-CL');
+            document.getElementById('kpi-egresos').innerText = '$' + totalEgresos.toLocaleString('es-CL');
+
+            const kpiSaldo = document.getElementById('kpi-saldo');
+            kpiSaldo.innerText = '$' + saldoNeto.toLocaleString('es-CL');
+            kpiSaldo.classList.toggle('neg', saldoNeto < 0);
+
+            // --- Alertas (sin explicación de mecánica, solo el hecho relevante) ---
+            const alertaNeg = document.getElementById('alerta-negativo');
+            const alertaOk = document.getElementById('alerta-ok');
+            alertaNeg.classList.toggle('show', cayoBajoCero);
+            alertaOk.classList.toggle('show', !cayoBajoCero && totalEgresos > 0);
+
+            if (cayoBajoCero) {
+                const lista = [...new Set(diasConCaida)].join(', ');
+                alertaNeg.innerText = `Saldo negativo al pagar: ${lista}.`;
+            }
+
+            // --- Datasets con relleno de área (estilo montañas) ---
+            let datasetsGrafica = [
+                {
+                    label: 'Saldo neto',
+                    data: netoPoints,
+                    borderColor: COLOR_NETO,
+                    backgroundColor: 'rgba(122, 114, 100, 0.10)',
+                    borderWidth: 2.5,
+                    fill: true,
+                    tension: 0.15,
+                    pointBackgroundColor: '#f4ede2',
+                    pointBorderColor: COLOR_NETO,
+                    pointBorderWidth: 1.5,
+                    pointRadius: 0,
+                    pointHoverRadius: 5,
+                    order: 1
+                },
+                {
+                    label: 'Sueldo acumulado',
+                    data: sueldoBrutoPoints,
+                    borderColor: COLOR_SUELDO,
+                    backgroundColor: 'rgba(168, 180, 201, 0.18)',
+                    borderWidth: 1.5,
+                    fill: true,
+                    tension: 0.15,
+                    pointRadius: 0,
+                    order: 3
+                },
+                {
+                    label: 'Propinas acumuladas',
+                    data: propinaBrutoPoints,
+                    borderColor: COLOR_PROPINA,
+                    backgroundColor: 'rgba(232, 184, 150, 0.18)',
+                    borderWidth: 1.5,
+                    fill: true,
+                    tension: 0.15,
+                    pointRadius: 0,
+                    order: 2
+                }
+            ];
+
+            // --- PROYECCIÓN (no toca appState, solo agrega series si está activa) ---
+            if (proyeccionActiva) {
+                const proy = calcularProyeccion(sueldoPorDia, propinaPorDia, egresosPorDia,
+                    saldoNeto, acumSueldo, acumPropina, netoPoints, sueldoBrutoPoints, propinaBrutoPoints);
+
+                if (proy) {
+                    datasetsGrafica.push({
+                        label: 'Saldo proyectado',
+                        data: proy.netoProyectado,
+                        borderColor: COLOR_NETO,
+                        backgroundColor: 'transparent',
+                        borderWidth: 1.5,
+                        borderDash: [5, 4],
+                        fill: false,
+                        tension: 0.15,
+                        pointRadius: 0,
+                        order: 1
+                    });
+                    datasetsGrafica.push({
+                        label: 'Sueldo proyectado',
+                        data: proy.sueldoProyectado,
+                        borderColor: COLOR_SUELDO,
+                        backgroundColor: 'transparent',
+                        borderWidth: 1,
+                        borderDash: [2, 3],
+                        fill: false,
+                        tension: 0.15,
+                        pointRadius: 0,
+                        order: 3
+                    });
+                    datasetsGrafica.push({
+                        label: 'Propinas proyectadas',
+                        data: proy.propinaProyectado,
+                        borderColor: COLOR_PROPINA,
+                        backgroundColor: 'transparent',
+                        borderWidth: 1,
+                        borderDash: [2, 3],
+                        fill: false,
+                        tension: 0.15,
+                        pointRadius: 0,
+                        order: 3
+                    });
+
+                    document.getElementById('proy-dias-restantes').innerText = proy.diasRestantes;
+                    document.getElementById('proy-prom-propina').innerText = '$' + Math.round(proy.promPropina).toLocaleString('es-CL');
+                    document.getElementById('proy-prom-sueldo').innerText = '$' + Math.round(proy.promSueldo).toLocaleString('es-CL');
+                    document.getElementById('proy-bruto-final').innerText = '$' + Math.round(proy.brutoFinal).toLocaleString('es-CL');
+
+                    const proySaldoEl = document.getElementById('proy-saldo-final');
+                    proySaldoEl.innerText = '$' + Math.round(proy.saldoFinal).toLocaleString('es-CL');
+                    proySaldoEl.classList.toggle('neg', proy.saldoFinal < 0);
+                }
+            }
+
+            if (chartInstance) chartInstance.destroy();
+
+            // Líneas verticales para fechas de pago — sin etiqueta de texto (la leyenda ya identifica los colores)
+            const lineasVerticales = [];
+            appState.egresos.forEach((egreso, idx) => {
+                const monto = Number(egreso.monto) || 0;
+                if (monto > 0 && egreso.diaPago >= 1 && egreso.diaPago <= 31) {
+                    lineasVerticales.push({
+                        dia: egreso.diaPago,
+                        color: PALETA_EGRESOS[idx % PALETA_EGRESOS.length]
+                    });
+                }
+            });
+
+            chartInstance = new Chart(ctx, {
+                type: 'scatter',
+                data: { datasets: datasetsGrafica },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    showLine: true,
+                    interaction: { mode: 'nearest', intersect: false },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'bottom',
+                            min: 0,
+                            max: 31,
+                            title: { display: true, text: 'Día del mes', font: { family: "'IBM Plex Mono', monospace", size: 11 }, color: '#8a8175' },
+                            ticks: { stepSize: 1, font: { family: "'IBM Plex Mono', monospace", size: 10 }, color: '#8a8175' },
+                            grid: { color: '#e4d9c8', drawTicks: false }
+                        },
+                        y: {
+                            title: { display: true, text: 'Monto (CLP)', font: { family: "'IBM Plex Mono', monospace", size: 11 }, color: '#8a8175' },
+                            ticks: {
+                                font: { family: "'IBM Plex Mono', monospace", size: 10 },
+                                color: '#8a8175',
+                                callback: v => '$' + v.toLocaleString('es-CL')
+                            },
+                            grid: { color: '#e4d9c8', drawTicks: false }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                font: { family: "'IBM Plex Mono', monospace", size: 10 },
+                                color: '#4a443d',
+                                boxWidth: 10,
+                                boxHeight: 10,
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: '#4a443d',
+                            titleFont: { family: "'IBM Plex Mono', monospace", size: 11 },
+                            bodyFont: { family: "'IBM Plex Mono', monospace", size: 11 },
+                            callbacks: {
+                                label: (context) => context.dataset.label + ': $' + context.parsed.y.toLocaleString('es-CL')
+                            }
+                        }
+                    }
+                },
+                plugins: [{
+                    id: 'lineasPago',
+                    afterDraw: (chart) => {
+                        const { ctx, chartArea, scales } = chart;
+                        ctx.save();
+                        lineasVerticales.forEach(linea => {
+                            const x = scales.x.getPixelForValue(linea.dia);
+                            if (x < chartArea.left || x > chartArea.right) return;
+
+                            ctx.strokeStyle = linea.color;
+                            ctx.lineWidth = 1;
+                            ctx.setLineDash([3, 4]);
+                            ctx.globalAlpha = 0.6;
+                            ctx.beginPath();
+                            ctx.moveTo(x, chartArea.top);
+                            ctx.lineTo(x, chartArea.bottom);
+                            ctx.stroke();
+                        });
+                        ctx.restore();
+                    }
+                }]
+            });
+
+            actualizarGraficaDeuda();
+        }
+
+        // --- GRÁFICO DE DEUDA UNIVERSITARIA (independiente del flujo de caja) ---
+        function actualizarGraficaDeuda() {
+            const meta = Number(appState.deuda.meta) || 0;
+            const abonos = [...appState.deuda.abonos]
+                .filter(a => (Number(a.monto) || 0) > 0 && a.diaPago >= 1 && a.diaPago <= 31)
+                .sort((a, b) => a.diaPago - b.diaPago);
+
+            const totalAbonado = abonos.reduce((a, ab) => a + (Number(ab.monto) || 0), 0);
+            const restante = meta - totalAbonado;
+            const porcentaje = meta > 0 ? Math.min(100, Math.max(0, (totalAbonado / meta) * 100)) : 0;
+
+            document.getElementById('deuda-kpi-meta').innerText = '$' + meta.toLocaleString('es-CL');
+            document.getElementById('deuda-kpi-abonado').innerText = '$' + totalAbonado.toLocaleString('es-CL');
+
+            const kpiRestante = document.getElementById('deuda-kpi-restante');
+            kpiRestante.innerText = '$' + Math.max(0, restante).toLocaleString('es-CL');
+            kpiRestante.classList.toggle('neg', restante > 0);
+            kpiRestante.classList.toggle('pos', restante <= 0);
+
+            document.getElementById('deuda-porcentaje').innerText = Math.round(porcentaje) + '%';
+            document.getElementById('deuda-barra').style.width = porcentaje + '%';
+
+            if (restante <= 0 && meta > 0) {
+                document.getElementById('deuda-barra').style.background = 'var(--positivo)';
+            } else {
+                document.getElementById('deuda-barra').style.background = 'var(--deuda)';
+            }
+
+            let saldoPendiente = meta;
+            let puntosDeuda = [{ x: 0, y: saldoPendiente }];
+
+            abonos.forEach(ab => {
+                puntosDeuda.push({ x: ab.diaPago, y: saldoPendiente });
+                saldoPendiente -= (Number(ab.monto) || 0);
+                puntosDeuda.push({ x: ab.diaPago, y: saldoPendiente });
+            });
+
+            if (puntosDeuda[puntosDeuda.length - 1].x !== 31) {
+                puntosDeuda.push({ x: 31, y: saldoPendiente });
+            }
+
+            const ctxDeuda = document.getElementById('deudaChart').getContext('2d');
+            if (deudaChartInstance) deudaChartInstance.destroy();
+
+            deudaChartInstance = new Chart(ctxDeuda, {
+                type: 'scatter',
+                data: {
+                    datasets: [
+                        {
+                            label: 'Saldo pendiente',
+                            data: puntosDeuda,
+                            borderColor: COLOR_DEUDA,
+                            backgroundColor: 'rgba(184, 160, 192, 0.14)',
+                            borderWidth: 2.5,
+                            fill: true,
+                            tension: 0.1,
+                            pointRadius: 0,
+                            pointHoverRadius: 5,
+                            order: 1
+                        },
+                        {
+                            label: 'Saldada',
+                            data: [{ x: 0, y: 0 }, { x: 31, y: 0 }],
+                            borderColor: '#cfc6b8',
+                            borderWidth: 1,
+                            borderDash: [3, 3],
+                            fill: false,
+                            pointRadius: 0,
+                            order: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    showLine: true,
+                    interaction: { mode: 'nearest', intersect: false },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'bottom',
+                            min: 0,
+                            max: 31,
+                            title: { display: true, text: 'Día del mes', font: { family: "'IBM Plex Mono', monospace", size: 11 }, color: '#8a8175' },
+                            ticks: { stepSize: 1, font: { family: "'IBM Plex Mono', monospace", size: 10 }, color: '#8a8175' },
+                            grid: { color: '#e4d9c8', drawTicks: false }
+                        },
+                        y: {
+                            min: Math.min(0, saldoPendiente),
+                            title: { display: true, text: 'Saldo pendiente (CLP)', font: { family: "'IBM Plex Mono', monospace", size: 11 }, color: '#8a8175' },
+                            ticks: {
+                                font: { family: "'IBM Plex Mono', monospace", size: 10 },
+                                color: '#8a8175',
+                                callback: v => '$' + v.toLocaleString('es-CL')
+                            },
+                            grid: { color: '#e4d9c8', drawTicks: false }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                font: { family: "'IBM Plex Mono', monospace", size: 10 },
+                                color: '#4a443d',
+                                boxWidth: 10,
+                                boxHeight: 10,
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: '#4a443d',
+                            titleFont: { family: "'IBM Plex Mono', monospace", size: 11 },
+                            bodyFont: { family: "'IBM Plex Mono', monospace", size: 11 },
+                            callbacks: {
+                                label: (context) => context.dataset.label + ': $' + context.parsed.y.toLocaleString('es-CL')
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function escapeAttr(str) {
+            return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+        }
+
+        // --- PROYECCIÓN A FIN DE MES (reversible, no toca appState) ---
+        function toggleProyeccion() {
+            proyeccionActiva = !proyeccionActiva;
+            const btn = document.getElementById('btn-proyectar');
+            const detalle = document.getElementById('proyeccion-detalle');
+            btn.innerText = proyeccionActiva ? 'Quitar proyección' : 'Proyectar mes';
+            detalle.style.display = proyeccionActiva ? 'block' : 'none';
+            actualizarGrafica();
+        }
+
+        // Promedio recortado: descarta el valor más alto y más bajo si hay >= 4 datos
+        function promedioRecortado(valores) {
+            if (valores.length === 0) return 0;
+            if (valores.length < 4) {
+                return valores.reduce((a, b) => a + b, 0) / valores.length;
+            }
+            const ordenado = [...valores].sort((a, b) => a - b);
+            const recortado = ordenado.slice(1, -1);
+            return recortado.reduce((a, b) => a + b, 0) / recortado.length;
+        }
+
+        function calcularProyeccion(sueldoPorDia, propinaPorDia, egresosPorDia, saldoNetoActual, acumSueldoActual, acumPropinaActual, netoPoints, sueldoBrutoPoints, propinaBrutoPoints) {
+            const diasConDatos = appState.ingresos.map(i => i.dia).filter(d => d >= 1 && d <= 31);
+            if (diasConDatos.length === 0) return null;
+
+            const hoy = Math.max(...diasConDatos);
+            const diasRestantes = 31 - hoy;
+            if (diasRestantes <= 0) return null;
+
+            const propinasPositivas = [];
+            for (let d = 1; d <= hoy; d++) {
+                if (propinaPorDia[d] > 0) propinasPositivas.push(propinaPorDia[d]);
+            }
+            const promPropina = propinasPositivas.length > 0
+                ? propinasPositivas.reduce((a, b) => a + b, 0) / propinasPositivas.length
+                : 0;
+
+            const sueldosPositivos = [];
+            for (let d = 1; d <= hoy; d++) {
+                if (sueldoPorDia[d] > 0) sueldosPositivos.push(sueldoPorDia[d]);
+            }
+            const promSueldo = promedioRecortado(sueldosPositivos);
+
+            let netoProyectado = [{ x: hoy, y: saldoNetoActual }];
+            let sueldoProyectado = [{ x: hoy, y: acumSueldoActual }];
+            let propinaProyectado = [{ x: hoy, y: acumPropinaActual }];
+
+            let saldoProy = saldoNetoActual;
+            let acumSueldoProy = acumSueldoActual;
+            let acumPropinaProy = acumPropinaActual;
+
+            for (let dia = hoy + 1; dia <= 31; dia++) {
+                saldoProy += promSueldo + promPropina;
+                acumSueldoProy += promSueldo;
+                acumPropinaProy += promPropina;
+
+                const egresosHoy = egresosPorDia[dia] || [];
+                if (egresosHoy.length > 0) {
+                    netoProyectado.push({ x: dia, y: saldoProy });
+                    egresosHoy.forEach(e => {
+                        saldoProy -= (Number(e.monto) || 0);
+                        netoProyectado.push({ x: dia, y: saldoProy });
+                    });
+                } else {
+                    netoProyectado.push({ x: dia, y: saldoProy });
+                }
+
+                sueldoProyectado.push({ x: dia, y: acumSueldoProy });
+                propinaProyectado.push({ x: dia, y: acumPropinaProy });
+            }
+
+            return {
+                diasRestantes,
+                promPropina,
+                promSueldo,
+                brutoFinal: acumSueldoProy + acumPropinaProy,
+                saldoFinal: saldoProy,
+                netoProyectado,
+                sueldoProyectado,
+                propinaProyectado
+            };
+        }
+
+        // --- 6. PERSISTENCIA ---
+        function guardarLocal() {
+            localStorage.setItem('finanzas_alejo', JSON.stringify(appState));
+
+            const btn = document.getElementById('btn-guardar');
+            const originalText = btn.innerText;
+            btn.innerText = "Guardado";
+            btn.classList.add('save-flash');
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.classList.remove('save-flash');
+            }, 1500);
+        }
+
+        function descargarHTML() {
+            const scriptTag = document.getElementById('embedded-state');
+            scriptTag.textContent = JSON.stringify(appState);
+
+            const htmlContent = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+
+            const blob = new Blob([htmlContent], { type: "text/html;charset=utf-8" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+
+            const fecha = new Date();
+            a.download = `panel-financiero-${fecha.getFullYear()}-${(fecha.getMonth() + 1).toString().padStart(2, '0')}.html`;
+
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        window.onload = inicializar;
+    </script>
+</body>
+</html>

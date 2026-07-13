@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#f4ede2">
+    <title>Mis Finanzas</title>
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --papiro: #f4ede2;
+            --papiro-suave: #efe6d8;
+            --ink: #4a443d;
+            --ink-soft: #8a8175;
+            --line: #e4d9c8;
+            --positivo: #a8c0a0;
+            --negativo: #c97f6f;
+            --acento: #a8b4c9;
+        }
+        * { box-sizing: border-box; }
+        html, body {
+            margin: 0;
+            min-height: 100vh;
+            background: var(--papiro);
+            color: var(--ink);
+            font-family: 'Inter', system-ui, sans-serif;
+            font-size: 14px;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+        .wrap { max-width: 720px; margin: 0 auto; padding: 48px 24px 100px; }
+        .eyebrow {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+            color: var(--ink-soft); margin: 0 0 10px;
+        }
+        h1 { font-family: 'Source Serif 4', serif; font-weight: 600; font-size: 34px; margin: 0 0 8px; letter-spacing: -0.01em; }
+        h2 { font-family: 'Source Serif 4', serif; font-size: 19px; font-weight: 600; margin: 0; }
+        label { display:block; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:6px; }
+        input {
+            width: 100%; background: transparent; border: none;
+            border-bottom: 1px solid var(--line); padding: 8px 4px;
+            font-family: 'Inter', sans-serif; font-size: 15px; color: var(--ink);
+            transition: border-color 0.2s;
+        }
+        input:focus { outline: none; border-bottom-color: var(--ink); }
+        button {
+            font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.06em;
+            text-transform: uppercase; cursor: pointer; border: 1px solid var(--ink);
+            background: var(--ink); color: var(--papiro); padding: 10px 18px; border-radius: 2px;
+            transition: opacity 0.2s;
+        }
+        button:hover { opacity: 0.85; }
+        button.ghost { background: transparent; color: var(--ink-soft); border-color: var(--line); }
+        .card { padding: 28px; border: 1px solid var(--line); border-radius: 6px; background: var(--papiro-suave); }
+        .hidden { display: none !important; }
+        .row { display: flex; gap: 12px; align-items: flex-end; }
+        .row > div { flex: 1; }
+        .muted { color: var(--ink-soft); font-size: 12px; }
+        .status-dot { display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--positivo); margin-right:8px; vertical-align:middle; }
+        .list-item { display:flex; justify-content:space-between; padding:10px 4px; border-bottom:1px solid var(--papiro); font-size:14px; }
+        .msg { font-size:12px; margin-top:12px; min-height:18px; }
+        .msg.err { color: var(--negativo); }
+        .msg.ok { color: var(--positivo); }
+        .topbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:40px; }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+
+        <!-- ===== LOGIN ===== -->
+        <section id="login-view">
+            <p class="eyebrow">Operación Personal</p>
+            <h1>Mis Finanzas</h1>
+            <p class="muted" style="margin-bottom:32px;">Entra con tu correo y contraseña para ver tu panel.</p>
+            <div class="card" style="max-width:420px;">
+                <div style="margin-bottom:20px;">
+                    <label>Correo</label>
+                    <input type="email" id="email" autocomplete="username" placeholder="tu@correo.com">
+                </div>
+                <div style="margin-bottom:24px;">
+                    <label>Contraseña</label>
+                    <input type="password" id="password" autocomplete="current-password" placeholder="••••••••">
+                </div>
+                <button id="btn-login">Entrar</button>
+                <div id="login-msg" class="msg"></div>
+            </div>
+        </section>
+
+        <!-- ===== APP (autenticado) ===== -->
+        <section id="app-view" class="hidden">
+            <div class="topbar">
+                <div>
+                    <p class="eyebrow"><span class="status-dot"></span>Conectado en vivo</p>
+                    <h1 style="font-size:28px; margin:0;">Mis Finanzas</h1>
+                </div>
+                <button class="ghost" id="btn-logout">Salir</button>
+            </div>
+
+            <p class="muted" id="whoami" style="margin-bottom:32px;"></p>
+
+            <!-- Prueba de Fase 0: crear cuentas y verlas aparecer en tiempo real -->
+            <div class="card">
+                <h2>Prueba de conexión — Cuentas</h2>
+                <p class="muted" style="margin:6px 0 20px;">Agrega una cuenta (banco/tarjeta). Si abres este mismo link en tu teléfono, la verás aparecer sola. Esto confirma que la base de datos, tu login y el tiempo real funcionan.</p>
+                <div class="row" style="margin-bottom:20px;">
+                    <div>
+                        <label>Nombre de la cuenta</label>
+                        <input type="text" id="cuenta-nombre" placeholder="Ej: Santander, Tarjeta CMR...">
+                    </div>
+                    <button id="btn-add-cuenta">Agregar</button>
+                </div>
+                <div id="cuentas-list"></div>
+                <div id="app-msg" class="msg"></div>
+            </div>
+
+            <p class="muted" style="margin-top:32px; text-align:center;">Fase 0 · esqueleto. Lo siguiente: portar tu panel completo (egresos, propinas, deuda, cartola).</p>
+        </section>
+
+    </div>
+
+    <script type="module">
+        import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+        // ---- Configuración de tu proyecto Supabase ----
+        const SUPABASE_URL = 'https://tbzytnunvdbwuyqjtdpz.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_LqwpwT8dfxv93ukvwy9BKQ_LWyHd5Ha';
+
+        const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        const $ = (id) => document.getElementById(id);
+        const loginView = $('login-view');
+        const appView = $('app-view');
+
+        // ---- Sesión ----
+        async function refreshSession() {
+            const { data: { session } } = await sb.auth.getSession();
+            if (session) showApp(session.user);
+            else showLogin();
+        }
+
+        function showLogin() {
+            appView.classList.add('hidden');
+            loginView.classList.remove('hidden');
+        }
+
+        function showApp(user) {
+            loginView.classList.add('hidden');
+            appView.classList.remove('hidden');
+            $('whoami').textContent = `Sesión: ${user.email}`;
+            cargarCuentas();
+            suscribirRealtime();
+        }
+
+        // ---- Login ----
+        $('btn-login').addEventListener('click', async () => {
+            const msg = $('login-msg');
+            msg.className = 'msg';
+            msg.textContent = 'Entrando...';
+            const email = $('email').value.trim();
+            const password = $('password').value;
+            const { error } = await sb.auth.signInWithPassword({ email, password });
+            if (error) {
+                msg.className = 'msg err';
+                msg.textContent = 'No se pudo entrar: ' + error.message;
+            } else {
+                msg.textContent = '';
+                refreshSession();
+            }
+        });
+
+        $('password').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('btn-login').click(); });
+
+        $('btn-logout').addEventListener('click', async () => {
+            await sb.auth.signOut();
+            showLogin();
+        });
+
+        // ---- Cuentas (prueba de Fase 0) ----
+        async function cargarCuentas() {
+            const { data, error } = await sb.from('cuentas').select('*').order('creado_en', { ascending: true });
+            if (error) { setAppMsg('Error leyendo cuentas: ' + error.message, true); return; }
+            renderCuentas(data || []);
+        }
+
+        function renderCuentas(cuentas) {
+            const list = $('cuentas-list');
+            if (!cuentas.length) { list.innerHTML = '<p class="muted">Aún no hay cuentas. Agrega una arriba.</p>'; return; }
+            list.innerHTML = cuentas.map(c =>
+                `<div class="list-item"><span>${escapeHtml(c.nombre)}</span><span class="muted">${escapeHtml(c.tipo)}</span></div>`
+            ).join('');
+        }
+
+        $('btn-add-cuenta').addEventListener('click', async () => {
+            const input = $('cuenta-nombre');
+            const nombre = input.value.trim();
+            if (!nombre) return;
+            input.value = '';
+            const { error } = await sb.from('cuentas').insert({ nombre });
+            if (error) setAppMsg('Error guardando: ' + error.message, true);
+            else setAppMsg('Guardado ✓', false);
+        });
+
+        // ---- Tiempo real ----
+        function suscribirRealtime() {
+            sb.channel('cuentas-cambios')
+              .on('postgres_changes', { event: '*', schema: 'public', table: 'cuentas' }, () => cargarCuentas())
+              .subscribe();
+        }
+
+        function setAppMsg(text, isErr) {
+            const m = $('app-msg');
+            m.className = 'msg ' + (isErr ? 'err' : 'ok');
+            m.textContent = text;
+            if (!isErr) setTimeout(() => { m.textContent = ''; }, 1500);
+        }
+
+        function escapeHtml(s) {
+            return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        }
+
+        // Service worker (PWA) — opcional, tolera fallo en local
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(() => {});
+        }
+
+        refreshSession();
+    </script>
+</body>
+</html>
