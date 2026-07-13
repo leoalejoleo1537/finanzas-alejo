@@ -15,56 +15,84 @@
             --ink: #4a443d;
             --ink-soft: #8a8175;
             --line: #e4d9c8;
+            --sueldo: #a8b4c9;
+            --propina: #e8b896;
+            --egreso: #d9a8a0;
             --positivo: #a8c0a0;
             --negativo: #c97f6f;
-            --acento: #a8b4c9;
         }
         * { box-sizing: border-box; }
         html, body {
-            margin: 0;
-            min-height: 100vh;
-            background: var(--papiro);
-            color: var(--ink);
-            font-family: 'Inter', system-ui, sans-serif;
-            font-size: 14px;
-            line-height: 1.6;
+            margin: 0; min-height: 100vh;
+            background: var(--papiro); color: var(--ink);
+            font-family: 'Inter', system-ui, sans-serif; font-size: 14px; line-height: 1.6;
             -webkit-font-smoothing: antialiased;
         }
-        .wrap { max-width: 720px; margin: 0 auto; padding: 48px 24px 100px; }
-        .eyebrow {
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
-            color: var(--ink-soft); margin: 0 0 10px;
-        }
-        h1 { font-family: 'Source Serif 4', serif; font-weight: 600; font-size: 34px; margin: 0 0 8px; letter-spacing: -0.01em; }
-        h2 { font-family: 'Source Serif 4', serif; font-size: 19px; font-weight: 600; margin: 0; }
+        .wrap { max-width: 1080px; margin: 0 auto; padding: 40px 24px 120px; }
+        .eyebrow { font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.16em; text-transform:uppercase; color:var(--ink-soft); margin:0 0 10px; }
+        h1 { font-family:'Source Serif 4',serif; font-weight:600; font-size:30px; margin:0; letter-spacing:-0.01em; }
+        h2 { font-family:'Source Serif 4',serif; font-size:19px; font-weight:600; margin:0; }
+        h2 .tag { display:inline-block; width:7px; height:7px; border-radius:50%; margin-right:10px; vertical-align:middle; }
         label { display:block; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:6px; }
         input {
-            width: 100%; background: transparent; border: none;
-            border-bottom: 1px solid var(--line); padding: 8px 4px;
-            font-family: 'Inter', sans-serif; font-size: 15px; color: var(--ink);
-            transition: border-color 0.2s;
+            width:100%; background:transparent; border:none; border-bottom:1px solid var(--line);
+            padding:8px 4px; font-family:'Inter',sans-serif; font-size:15px; color:var(--ink); transition:border-color 0.2s;
         }
-        input:focus { outline: none; border-bottom-color: var(--ink); }
+        input:focus { outline:none; border-bottom-color:var(--ink); }
+        input[type="number"] { text-align:right; font-family:'IBM Plex Mono',monospace; font-size:14px; }
         button {
-            font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.06em;
-            text-transform: uppercase; cursor: pointer; border: 1px solid var(--ink);
-            background: var(--ink); color: var(--papiro); padding: 10px 18px; border-radius: 2px;
-            transition: opacity 0.2s;
+            font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.06em; text-transform:uppercase;
+            cursor:pointer; border:1px solid var(--ink); background:var(--ink); color:var(--papiro);
+            padding:10px 18px; border-radius:2px; transition:opacity 0.2s;
         }
-        button:hover { opacity: 0.85; }
-        button.ghost { background: transparent; color: var(--ink-soft); border-color: var(--line); }
-        .card { padding: 28px; border: 1px solid var(--line); border-radius: 6px; background: var(--papiro-suave); }
-        .hidden { display: none !important; }
-        .row { display: flex; gap: 12px; align-items: flex-end; }
-        .row > div { flex: 1; }
-        .muted { color: var(--ink-soft); font-size: 12px; }
-        .status-dot { display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--positivo); margin-right:8px; vertical-align:middle; }
-        .list-item { display:flex; justify-content:space-between; padding:10px 4px; border-bottom:1px solid var(--papiro); font-size:14px; }
+        button:hover { opacity:0.85; }
+        button.ghost { background:transparent; color:var(--ink-soft); border-color:var(--line); padding:8px 14px; }
+        button.add { background:none; border:none; color:var(--ink-soft); padding:0; font-size:11px; }
+        button.add:hover { color:var(--ink); opacity:1; }
+        .card { padding:28px; border:1px solid var(--line); border-radius:6px; background:var(--papiro-suave); max-width:420px; }
+        .hidden { display:none !important; }
+        .muted { color:var(--ink-soft); font-size:12px; }
         .msg { font-size:12px; margin-top:12px; min-height:18px; }
-        .msg.err { color: var(--negativo); }
-        .msg.ok { color: var(--positivo); }
-        .topbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:40px; }
+        .msg.err { color:var(--negativo); }
+        .msg.ok { color:var(--positivo); }
+        .status-dot { display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--positivo); margin-right:8px; vertical-align:middle; }
+
+        /* Topbar */
+        .topbar { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:36px; gap:16px; flex-wrap:wrap; }
+        .month-nav { display:flex; align-items:center; gap:14px; }
+        .month-nav .mlabel { font-family:'Source Serif 4',serif; font-size:18px; font-weight:600; min-width:150px; text-align:center; text-transform:capitalize; }
+        .month-nav button { background:none; border:1px solid var(--line); color:var(--ink); padding:4px 12px; font-size:16px; }
+
+        /* KPIs */
+        .kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:28px; margin-bottom:48px; }
+        .kpi .klabel { font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:8px; }
+        .kpi .kvalue { font-family:'Source Serif 4',serif; font-size:24px; font-weight:600; }
+        .kvalue.sueldo { color:var(--sueldo); }
+        .kvalue.propina { color:var(--propina); }
+        .kvalue.neg { color:var(--negativo); }
+        .kvalue.pos { color:var(--positivo); }
+
+        /* Layout dos columnas */
+        .fila { display:grid; grid-template-columns:1fr 1fr; gap:56px; align-items:start; }
+        @media (max-width:860px) { .fila { grid-template-columns:1fr; gap:48px; } }
+        section { margin-bottom:8px; }
+        .section-head { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:16px; }
+
+        .head-row, .row-item { display:grid; align-items:center; gap:10px; }
+        .head-egreso, .row-egreso { grid-template-columns:1fr 110px 56px 24px; }
+        .head-ingreso, .row-ingreso { grid-template-columns:56px 1fr 1fr 24px; }
+        .head-row { font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:var(--ink-soft); padding:0 4px 8px; border-bottom:1px solid var(--line); }
+        .head-row span:not(:first-child) { text-align:right; }
+        .head-ingreso span:first-child, .row-ingreso input[name="dia"] { text-align:center; }
+        .row-item { padding:6px 4px; border-bottom:1px solid var(--papiro); }
+        .row-item input { padding:6px 4px; font-size:14px; }
+        .remove-btn { background:none; border:none; color:var(--line); font-size:18px; line-height:1; cursor:pointer; padding:0; }
+        .remove-btn:hover { color:var(--negativo); }
+        .totals { margin-top:16px; padding-top:12px; display:flex; justify-content:space-between; align-items:baseline; }
+        .totals .label { font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--ink-soft); }
+        .totals .value { font-family:'Source Serif 4',serif; font-size:22px; font-weight:600; }
+        .add-inline { display:flex; gap:8px; align-items:flex-end; margin-top:16px; }
+        .add-inline .day-in { width:70px; flex:none; }
     </style>
 </head>
 <body>
@@ -74,8 +102,8 @@
         <section id="login-view">
             <p class="eyebrow">Operación Personal</p>
             <h1>Mis Finanzas</h1>
-            <p class="muted" style="margin-bottom:32px;">Entra con tu correo y contraseña para ver tu panel.</p>
-            <div class="card" style="max-width:420px;">
+            <p class="muted" style="margin-bottom:32px;">Entra con tu correo y contraseña.</p>
+            <div class="card">
                 <div style="margin-bottom:20px;">
                     <label>Correo</label>
                     <input type="email" id="email" autocomplete="username" placeholder="tu@correo.com">
@@ -89,143 +117,243 @@
             </div>
         </section>
 
-        <!-- ===== APP (autenticado) ===== -->
+        <!-- ===== APP ===== -->
         <section id="app-view" class="hidden">
             <div class="topbar">
                 <div>
-                    <p class="eyebrow"><span class="status-dot"></span>Conectado en vivo</p>
-                    <h1 style="font-size:28px; margin:0;">Mis Finanzas</h1>
+                    <p class="eyebrow"><span class="status-dot"></span>En vivo</p>
+                    <h1>Mis Finanzas</h1>
                 </div>
-                <button class="ghost" id="btn-logout">Salir</button>
-            </div>
-
-            <p class="muted" id="whoami" style="margin-bottom:32px;"></p>
-
-            <!-- Prueba de Fase 0: crear cuentas y verlas aparecer en tiempo real -->
-            <div class="card">
-                <h2>Prueba de conexión — Cuentas</h2>
-                <p class="muted" style="margin:6px 0 20px;">Agrega una cuenta (banco/tarjeta). Si abres este mismo link en tu teléfono, la verás aparecer sola. Esto confirma que la base de datos, tu login y el tiempo real funcionan.</p>
-                <div class="row" style="margin-bottom:20px;">
-                    <div>
-                        <label>Nombre de la cuenta</label>
-                        <input type="text" id="cuenta-nombre" placeholder="Ej: Santander, Tarjeta CMR...">
+                <div style="display:flex; flex-direction:column; align-items:flex-end; gap:14px;">
+                    <button class="ghost" id="btn-logout">Salir</button>
+                    <div class="month-nav">
+                        <button id="mes-prev" title="Mes anterior">‹</button>
+                        <span class="mlabel" id="mes-label">—</span>
+                        <button id="mes-next" title="Mes siguiente">›</button>
                     </div>
-                    <button id="btn-add-cuenta">Agregar</button>
                 </div>
-                <div id="cuentas-list"></div>
-                <div id="app-msg" class="msg"></div>
             </div>
 
-            <p class="muted" style="margin-top:32px; text-align:center;">Fase 0 · esqueleto. Lo siguiente: portar tu panel completo (egresos, propinas, deuda, cartola).</p>
-        </section>
+            <!-- KPIs -->
+            <div class="kpi-grid">
+                <div class="kpi"><div class="klabel">Sueldo / turno</div><div class="kvalue sueldo" id="kpi-sueldo">$0</div></div>
+                <div class="kpi"><div class="klabel">Propinas</div><div class="kvalue propina" id="kpi-propinas">$0</div></div>
+                <div class="kpi"><div class="klabel">Total bruto</div><div class="kvalue" id="kpi-bruto">$0</div></div>
+                <div class="kpi"><div class="klabel">Egresos fijos</div><div class="kvalue" id="kpi-egresos">$0</div></div>
+                <div class="kpi"><div class="klabel">Saldo neto</div><div class="kvalue" id="kpi-saldo">$0</div></div>
+            </div>
 
+            <div class="fila">
+                <!-- EGRESOS FIJOS -->
+                <section>
+                    <div class="section-head">
+                        <h2><span class="tag" style="background:var(--egreso)"></span>Egresos fijos</h2>
+                    </div>
+                    <div class="head-row head-egreso"><span>Nombre</span><span>Monto</span><span>Día</span><span></span></div>
+                    <div id="egresos-list"></div>
+                    <div class="totals"><span class="label">Total egresos</span><span class="value neg" id="total-egresos">$0</span></div>
+                    <div class="add-inline">
+                        <div style="flex:1;"><label>Nuevo egreso</label><input type="text" id="new-egreso-nombre" placeholder="Ej: Arriendo"></div>
+                        <div style="width:110px; flex:none;"><label>Monto</label><input type="number" id="new-egreso-monto" placeholder="0" min="0"></div>
+                        <div class="day-in"><label>Día</label><input type="number" id="new-egreso-dia" placeholder="1" min="1" max="31"></div>
+                        <button class="add" id="btn-add-egreso">+ Añadir</button>
+                    </div>
+                </section>
+
+                <!-- INGRESOS DIARIOS -->
+                <section>
+                    <div class="section-head">
+                        <h2><span class="tag" style="background:var(--positivo)"></span>Ingresos diarios</h2>
+                    </div>
+                    <div class="head-row head-ingreso"><span>Día</span><span>Turno</span><span>Propinas</span><span></span></div>
+                    <div id="ingresos-list"></div>
+                    <div class="add-inline">
+                        <div class="day-in"><label>Día</label><input type="number" id="new-ingreso-dia" placeholder="1" min="1" max="31"></div>
+                        <div style="flex:1;"><label>Turno</label><input type="number" id="new-ingreso-turno" placeholder="0" min="0"></div>
+                        <div style="flex:1;"><label>Propinas</label><input type="number" id="new-ingreso-propinas" placeholder="0" min="0"></div>
+                        <button class="add" id="btn-add-ingreso">+ Añadir</button>
+                    </div>
+                </section>
+            </div>
+
+            <div id="app-msg" class="msg" style="text-align:center; margin-top:32px;"></div>
+            <p class="muted" style="margin-top:20px; text-align:center;">Fase 1a · egresos, ingresos y KPIs en vivo. Sigue: deuda universitaria y gráficos.</p>
+        </section>
     </div>
 
     <script type="module">
         import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-        // ---- Configuración de tu proyecto Supabase ----
         const SUPABASE_URL = 'https://tbzytnunvdbwuyqjtdpz.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_LqwpwT8dfxv93ukvwy9BKQ_LWyHd5Ha';
-
         const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
         const $ = (id) => document.getElementById(id);
-        const loginView = $('login-view');
-        const appView = $('app-view');
+        const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+        const fmt = (n) => '$' + Math.round(Number(n) || 0).toLocaleString('es-CL');
+        const esc = (s) => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+        // Estado
+        let mes = new Date(); mes.setDate(1);
+        let egresos = [];
+        let ingresos = [];
+
+        function rangoMes() {
+            const y = mes.getFullYear(), m = mes.getMonth();
+            const primero = `${y}-${String(m+1).padStart(2,'0')}-01`;
+            const ultimoDia = new Date(y, m+1, 0).getDate();
+            const ultimo = `${y}-${String(m+1).padStart(2,'0')}-${String(ultimoDia).padStart(2,'0')}`;
+            return { primero, ultimo, ultimoDia };
+        }
 
         // ---- Sesión ----
         async function refreshSession() {
             const { data: { session } } = await sb.auth.getSession();
-            if (session) showApp(session.user);
-            else showLogin();
+            if (session) showApp(session.user); else showLogin();
         }
-
-        function showLogin() {
-            appView.classList.add('hidden');
-            loginView.classList.remove('hidden');
-        }
-
-        function showApp(user) {
-            loginView.classList.add('hidden');
-            appView.classList.remove('hidden');
-            $('whoami').textContent = `Sesión: ${user.email}`;
-            cargarCuentas();
-            suscribirRealtime();
+        function showLogin() { $('app-view').classList.add('hidden'); $('login-view').classList.remove('hidden'); }
+        function showApp() {
+            $('login-view').classList.add('hidden'); $('app-view').classList.remove('hidden');
+            actualizarLabelMes(); cargarTodo(); suscribir();
         }
 
         // ---- Login ----
         $('btn-login').addEventListener('click', async () => {
-            const msg = $('login-msg');
-            msg.className = 'msg';
-            msg.textContent = 'Entrando...';
-            const email = $('email').value.trim();
-            const password = $('password').value;
-            const { error } = await sb.auth.signInWithPassword({ email, password });
-            if (error) {
-                msg.className = 'msg err';
-                msg.textContent = 'No se pudo entrar: ' + error.message;
+            const msg = $('login-msg'); msg.className='msg'; msg.textContent='Entrando...';
+            const { error } = await sb.auth.signInWithPassword({ email: $('email').value.trim(), password: $('password').value });
+            if (error) { msg.className='msg err'; msg.textContent='No se pudo entrar: ' + error.message; }
+            else { msg.textContent=''; refreshSession(); }
+        });
+        $('password').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('btn-login').click(); });
+        $('btn-logout').addEventListener('click', async () => { await sb.auth.signOut(); showLogin(); });
+
+        // ---- Navegación de mes ----
+        function actualizarLabelMes() { $('mes-label').textContent = `${MESES[mes.getMonth()]} ${mes.getFullYear()}`; }
+        $('mes-prev').addEventListener('click', () => { mes.setMonth(mes.getMonth()-1); actualizarLabelMes(); cargarIngresos(); });
+        $('mes-next').addEventListener('click', () => { mes.setMonth(mes.getMonth()+1); actualizarLabelMes(); cargarIngresos(); });
+
+        // ---- Carga ----
+        async function cargarTodo() { await Promise.all([cargarEgresos(), cargarIngresos()]); }
+
+        async function cargarEgresos() {
+            const { data, error } = await sb.from('egresos_fijos').select('*').order('creado_en', { ascending:true });
+            if (error) return setMsg('Error egresos: '+error.message, true);
+            egresos = data || [];
+            renderEgresos(); calcularKPIs();
+        }
+        async function cargarIngresos() {
+            const { primero, ultimo } = rangoMes();
+            const { data, error } = await sb.from('ingresos_diarios').select('*').gte('fecha', primero).lte('fecha', ultimo).order('fecha', { ascending:true });
+            if (error) return setMsg('Error ingresos: '+error.message, true);
+            ingresos = data || [];
+            renderIngresos(); calcularKPIs();
+        }
+
+        // ---- Render egresos ----
+        function renderEgresos() {
+            const list = $('egresos-list');
+            list.innerHTML = egresos.map(e => `
+                <div class="row-item row-egreso">
+                    <input type="text" value="${esc(e.nombre)}" data-id="${e.id}" data-campo="nombre">
+                    <input type="number" value="${e.monto}" min="0" data-id="${e.id}" data-campo="monto">
+                    <input type="number" name="dia" value="${e.dia_pago}" min="1" max="31" data-id="${e.id}" data-campo="dia_pago">
+                    <button class="remove-btn" data-del-egreso="${e.id}" title="Eliminar">&times;</button>
+                </div>`).join('') || '<p class="muted">Sin egresos fijos aún.</p>';
+        }
+        // ---- Render ingresos ----
+        function renderIngresos() {
+            const list = $('ingresos-list');
+            list.innerHTML = ingresos.map(i => `
+                <div class="row-item row-ingreso">
+                    <input type="number" name="dia" value="${new Date(i.fecha+'T00:00').getDate()}" min="1" max="31" data-id="${i.id}" data-campo="dia">
+                    <input type="number" value="${i.turno}" min="0" data-id="${i.id}" data-campo="turno">
+                    <input type="number" value="${i.propinas}" min="0" data-id="${i.id}" data-campo="propinas">
+                    <button class="remove-btn" data-del-ingreso="${i.id}" title="Eliminar">&times;</button>
+                </div>`).join('') || '<p class="muted">Sin ingresos este mes.</p>';
+        }
+
+        // ---- KPIs ----
+        function calcularKPIs() {
+            const totalEgresos = egresos.reduce((a,e)=> a + (Number(e.monto)||0), 0);
+            const totalSueldo = ingresos.reduce((a,i)=> a + (Number(i.turno)||0), 0);
+            const totalPropinas = ingresos.reduce((a,i)=> a + (Number(i.propinas)||0), 0);
+            const bruto = totalSueldo + totalPropinas;
+            const saldo = bruto - totalEgresos;
+            $('kpi-sueldo').textContent = fmt(totalSueldo);
+            $('kpi-propinas').textContent = fmt(totalPropinas);
+            $('kpi-bruto').textContent = fmt(bruto);
+            $('kpi-egresos').textContent = fmt(totalEgresos);
+            $('total-egresos').textContent = fmt(totalEgresos);
+            const kSaldo = $('kpi-saldo');
+            kSaldo.textContent = fmt(saldo);
+            kSaldo.className = 'kvalue ' + (saldo < 0 ? 'neg' : 'pos');
+        }
+
+        // ---- Edición en línea (delegación) ----
+        $('egresos-list').addEventListener('change', async (ev) => {
+            const el = ev.target; const id = el.dataset.id, campo = el.dataset.campo;
+            if (!id) return;
+            let valor = campo === 'nombre' ? el.value : Number(el.value) || 0;
+            if (campo === 'dia_pago') valor = Math.min(31, Math.max(1, valor|0));
+            const { error } = await sb.from('egresos_fijos').update({ [campo]: valor }).eq('id', id);
+            if (error) setMsg('Error guardando: '+error.message, true);
+        });
+        $('ingresos-list').addEventListener('change', async (ev) => {
+            const el = ev.target; const id = el.dataset.id, campo = el.dataset.campo;
+            if (!id) return;
+            if (campo === 'dia') {
+                const dia = Math.min(rangoMes().ultimoDia, Math.max(1, (Number(el.value)||1)|0));
+                const y = mes.getFullYear(), m = mes.getMonth();
+                const fecha = `${y}-${String(m+1).padStart(2,'0')}-${String(dia).padStart(2,'0')}`;
+                const { error } = await sb.from('ingresos_diarios').update({ fecha }).eq('id', id);
+                if (error) setMsg('Error guardando: '+error.message, true);
             } else {
-                msg.textContent = '';
-                refreshSession();
+                const { error } = await sb.from('ingresos_diarios').update({ [campo]: Number(el.value)||0 }).eq('id', id);
+                if (error) setMsg('Error guardando: '+error.message, true);
             }
         });
 
-        $('password').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('btn-login').click(); });
-
-        $('btn-logout').addEventListener('click', async () => {
-            await sb.auth.signOut();
-            showLogin();
+        // ---- Eliminar (delegación) ----
+        document.addEventListener('click', async (ev) => {
+            const de = ev.target.dataset.delEgreso, di = ev.target.dataset.delIngreso;
+            if (de) { await sb.from('egresos_fijos').delete().eq('id', de); }
+            if (di) { await sb.from('ingresos_diarios').delete().eq('id', di); }
         });
 
-        // ---- Cuentas (prueba de Fase 0) ----
-        async function cargarCuentas() {
-            const { data, error } = await sb.from('cuentas').select('*').order('creado_en', { ascending: true });
-            if (error) { setAppMsg('Error leyendo cuentas: ' + error.message, true); return; }
-            renderCuentas(data || []);
-        }
-
-        function renderCuentas(cuentas) {
-            const list = $('cuentas-list');
-            if (!cuentas.length) { list.innerHTML = '<p class="muted">Aún no hay cuentas. Agrega una arriba.</p>'; return; }
-            list.innerHTML = cuentas.map(c =>
-                `<div class="list-item"><span>${escapeHtml(c.nombre)}</span><span class="muted">${escapeHtml(c.tipo)}</span></div>`
-            ).join('');
-        }
-
-        $('btn-add-cuenta').addEventListener('click', async () => {
-            const input = $('cuenta-nombre');
-            const nombre = input.value.trim();
-            if (!nombre) return;
-            input.value = '';
-            const { error } = await sb.from('cuentas').insert({ nombre });
-            if (error) setAppMsg('Error guardando: ' + error.message, true);
-            else setAppMsg('Guardado ✓', false);
+        // ---- Añadir ----
+        $('btn-add-egreso').addEventListener('click', async () => {
+            const nombre = $('new-egreso-nombre').value.trim() || 'Nuevo egreso';
+            const monto = Number($('new-egreso-monto').value) || 0;
+            const dia = Math.min(31, Math.max(1, (Number($('new-egreso-dia').value)||1)|0));
+            $('new-egreso-nombre').value=''; $('new-egreso-monto').value=''; $('new-egreso-dia').value='';
+            const { error } = await sb.from('egresos_fijos').insert({ nombre, monto, dia_pago: dia });
+            if (error) setMsg('Error: '+error.message, true); else setMsg('Guardado ✓', false);
+        });
+        $('btn-add-ingreso').addEventListener('click', async () => {
+            const dia = Math.min(rangoMes().ultimoDia, Math.max(1, (Number($('new-ingreso-dia').value)||1)|0));
+            const turno = Number($('new-ingreso-turno').value) || 0;
+            const propinas = Number($('new-ingreso-propinas').value) || 0;
+            const y = mes.getFullYear(), m = mes.getMonth();
+            const fecha = `${y}-${String(m+1).padStart(2,'0')}-${String(dia).padStart(2,'0')}`;
+            $('new-ingreso-dia').value=''; $('new-ingreso-turno').value=''; $('new-ingreso-propinas').value='';
+            const { error } = await sb.from('ingresos_diarios').insert({ fecha, turno, propinas });
+            if (error) setMsg('Error: '+error.message, true); else setMsg('Guardado ✓', false);
         });
 
         // ---- Tiempo real ----
-        function suscribirRealtime() {
-            sb.channel('cuentas-cambios')
-              .on('postgres_changes', { event: '*', schema: 'public', table: 'cuentas' }, () => cargarCuentas())
+        function suscribir() {
+            sb.channel('cambios-finanzas')
+              .on('postgres_changes', { event:'*', schema:'public', table:'egresos_fijos' }, () => cargarEgresos())
+              .on('postgres_changes', { event:'*', schema:'public', table:'ingresos_diarios' }, () => cargarIngresos())
               .subscribe();
         }
 
-        function setAppMsg(text, isErr) {
-            const m = $('app-msg');
-            m.className = 'msg ' + (isErr ? 'err' : 'ok');
-            m.textContent = text;
-            if (!isErr) setTimeout(() => { m.textContent = ''; }, 1500);
+        function setMsg(text, isErr) {
+            const m = $('app-msg'); m.className = 'msg ' + (isErr?'err':'ok'); m.textContent = text;
+            if (!isErr) setTimeout(()=>{ m.textContent=''; }, 1400);
         }
 
-        function escapeHtml(s) {
-            return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-        }
-
-        // Service worker (PWA) — opcional, tolera fallo en local
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js').catch(() => {});
-        }
-
+        if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
         refreshSession();
     </script>
 </body>
