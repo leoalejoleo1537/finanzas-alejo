@@ -1,11 +1,11 @@
 {
-  "name": "Mis Finanzas",
+  "name": "Panel Financiero",
   "short_name": "Finanzas",
   "description": "Panel personal de finanzas — en vivo",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#f4ede2",
-  "theme_color": "#f4ede2",
+  "background_color": "#08090f",
+  "theme_color": "#08090f",
   "icons": [
     {
       "src": "assets/icon-192.png",

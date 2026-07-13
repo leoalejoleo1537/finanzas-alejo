@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body {
+      background: #08090f;
+      color: #eef0f7;
+      font-family: 'Manrope', system-ui, sans-serif;
+      font-size: 14px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
+    ::selection { background: rgba(169,155,255,0.3); }
+    .fin-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+    .fin-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 6px; }
+    .fin-scroll::-webkit-scrollbar-track { background: transparent; }
+    a { color: #a99bff; text-decoration: none; }
+    a:hover { color: #c4bbff; }
+    input.fin-inp {
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px; color: #eef0f7; font-family: 'JetBrains Mono', monospace;
+      font-size: 13px; padding: 8px 10px; width: 100%; transition: border-color .2s, background .2s;
+    }
+    input.fin-inp:hover { border-color: rgba(255,255,255,0.18); }
+    input.fin-inp:focus { outline: none; border-color: #a99bff; background: rgba(169,155,255,0.06); }
+  </style>
+</helmet>
+<div style="position:relative; min-height:100vh; overflow:hidden;">
+  <div style="{{ glow1 }}"></div>
+  <div style="{{ glow2 }}"></div>
+
+  <div class="fin-scroll" style="position:relative; z-index:1; max-width:1180px; margin:0 auto; padding:44px 32px 96px;">
+
+    <!-- HEADER -->
+    <header style="display:flex; justify-content:space-between; align-items:flex-end; gap:24px; flex-wrap:wrap; margin-bottom:32px;">
+      <div>
+        <p style="font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.18em; text-transform:uppercase; color:#6b7089; margin:0 0 10px; display:flex; align-items:center; gap:8px;">
+          <span style="width:7px; height:7px; border-radius:50%; background:#7ee0b8; box-shadow:0 0 10px #7ee0b8;"></span>En vivo · Operación personal
+        </p>
+        <h1 style="font-size:30px; font-weight:800; letter-spacing:-0.02em; margin:0;">Buenas noches, Alejo</h1>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:7px 8px; -webkit-backdrop-filter:blur(16px); backdrop-filter:blur(16px);">
+        <button style="width:30px; height:30px; border-radius:9px; border:none; background:rgba(255,255,255,0.06); color:#c7cbdb; cursor:pointer; font-size:15px;">‹</button>
+        <span style="font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:0.08em; text-transform:uppercase; color:#c7cbdb; min-width:104px; text-align:center;">Julio 2026</span>
+        <button style="width:30px; height:30px; border-radius:9px; border:none; background:rgba(255,255,255,0.06); color:#c7cbdb; cursor:pointer; font-size:15px;">›</button>
+      </div>
+    </header>
+
+    <!-- TABS -->
+    <nav style="display:flex; gap:6px; flex-wrap:wrap; padding:6px; margin-bottom:28px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); border-radius:16px; -webkit-backdrop-filter:blur(16px); backdrop-filter:blur(16px); width:fit-content;">
+      <button onClick="{{ goResumen }}" style="{{ tabResumen }}">Resumen</button>
+      <button onClick="{{ goIngresos }}" style="{{ tabIngresos }}">Ingresos</button>
+      <button onClick="{{ goEgresos }}" style="{{ tabEgresos }}">Egresos</button>
+      <button onClick="{{ goDeuda }}" style="{{ tabDeuda }}">Deuda</button>
+      <button onClick="{{ goBanco }}" style="{{ tabBanco }}">Banco</button>
+    </nav>
+
+    <!-- ============ RESUMEN ============ -->
+    <sc-if value="{{ isResumen }}" hint-placeholder-val="{{ true }}">
+    <div style="display:flex; flex-direction:column; gap:20px;">
+
+      <!-- Hero saldo -->
+      <div style="background:linear-gradient(150deg, rgba(169,155,255,0.16), rgba(126,224,184,0.05) 60%, rgba(255,255,255,0.02)); border:1px solid rgba(255,255,255,0.10); border-radius:26px; -webkit-backdrop-filter:blur(24px); backdrop-filter:blur(24px); box-shadow:0 24px 60px -24px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.12); padding:30px 32px; position:relative; overflow:hidden;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:24px; flex-wrap:wrap;">
+          <div>
+            <p style="font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:#9aa0b5; margin:0 0 12px;">Saldo neto del mes</p>
+            <div style="font-size:52px; font-weight:800; letter-spacing:-0.03em; line-height:1; font-variant-numeric:tabular-nums;">{{ saldoNetoTxt }}</div>
+            <p style="color:#9aa0b5; margin:14px 0 0; font-size:13px;">Con {{ brutoTxt }} de ingresos y {{ egresosTotTxt }} en gastos y abonos este mes.</p>
+          </div>
+          <div style="{{ saldoChipStyle }}">{{ saldoChipTxt }}</div>
+        </div>
+      </div>
+
+      <!-- Ingresos vs Egresos + Deuda -->
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:20px;">
+
+        <!-- Comparación ingresos vs egresos -->
+        <div style="background:linear-gradient(155deg,rgba(255,255,255,0.075),rgba(255,255,255,0.02)); border:1px solid rgba(255,255,255,0.08); border-radius:22px; -webkit-backdrop-filter:blur(22px); backdrop-filter:blur(22px); box-shadow:0 18px 50px -20px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.09); padding:26px;">
+          <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:24px;">
+            <h2 style="font-size:16px; font-weight:700; margin:0;">Ingresos vs. egresos</h2>
+            <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:#6b7089;">Julio</span>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:22px;">
+            <div>
+              <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:9px;">
+                <span style="display:flex; align-items:center; gap:8px; font-size:13px; color:#c7cbdb;"><span style="width:9px;height:9px;border-radius:3px;background:#7ee0b8;"></span>Ingresos</span>
+                <span style="font-family:'JetBrains Mono',monospace; font-size:15px; font-weight:600; color:#7ee0b8;">{{ brutoTxt }}</span>
+              </div>
+              <div style="height:12px; border-radius:999px; background:rgba(255,255,255,0.06); overflow:hidden;">
+                <div style="height:100%; border-radius:999px; background:linear-gradient(90deg,#7ee0b8,#9ec2ff); box-shadow:0 0 14px rgba(126,224,184,0.5); width:{{ barIngreso }};"></div>
+              </div>
+            </div>
+            <div>
+              <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:9px;">
+                <span style="display:flex; align-items:center; gap:8px; font-size:13px; color:#c7cbdb;"><span style="width:9px;height:9px;border-radius:3px;background:#ff9a86;"></span>Egresos + abonos</span>
+                <span style="font-family:'JetBrains Mono',monospace; font-size:15px; font-weight:600; color:#ff9a86;">{{ egresosTotTxt }}</span>
+              </div>
+              <div style="height:12px; border-radius:999px; background:rgba(255,255,255,0.06); overflow:hidden;">
+                <div style="height:100%; border-radius:999px; background:linear-gradient(90deg,#ff9a86,#ffce8a); box-shadow:0 0 14px rgba(255,154,134,0.4); width:{{ barEgreso }};"></div>
+              </div>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; padding-top:16px; border-top:1px solid rgba(255,255,255,0.07);">
+              <span style="font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:#9aa0b5;">Diferencia</span>
+              <span style="font-size:20px; font-weight:700; font-variant-numeric:tabular-nums; color:{{ saldoColor }};">{{ saldoNetoTxt }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Deuda donut -->
+        <div style="background:linear-gradient(155deg,rgba(255,255,255,0.075),rgba(255,255,255,0.02)); border:1px solid rgba(255,255,255,0.08); border-radius:22px; -webkit-backdrop-filter:blur(22px); backdrop-filter:blur(22px); box-shadow:0 18px 50px -20px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.09); padding:26px; display:flex; gap:24px; align-items:center;">
+          <div style="position:relative; flex-shrink:0;">
+            <svg viewBox="0 0 140 140" style="width:140px; height:140px; display:block;">
+              <circle cx="70" cy="70" r="54" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="12"></circle>
+              <circle cx="70" cy="70" r="54" fill="none" stroke="#a99bff" stroke-width="12" stroke-linecap="round" transform="rotate(-90 70 70)" stroke-dasharray="{{ deudaDash }}" style="filter:drop-shadow(0 0 6px rgba(169,155,255,0.6));"></circle>
+            </svg>
+            <div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+              <span style="font-size:26px; font-weight:800; letter-spacing:-0.02em;">{{ deudaPctTxt }}</span>
+              <span style="font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:0.1em; text-transform:uppercase; color:#6b7089;">Abonado</span>
+            </div>
+          </div>
+          <div style="flex:1;">
+            <h2 style="font-size:16px; font-weight:700; margin:0 0 16px;">Deuda universidad</h2>
+            <div style="display:flex; flex-direction:column; gap:12px;">
+              <div style="display:flex; justify-content:space-between; align-items:baseline;">
+                <span style="font-size:12px; color:#9aa0b5;">Abonado</span>
+                <span style="font-family:'JetBrains Mono',monospace; font-size:14px; font-weight:600; color:#a99bff;">{{ abonadoTxt }}</span>
+              </div>
+              <div style="display:flex; justify-content:space-between; align-items:baseline;">
+                <span style="font-size:12px; color:#9aa0b5;">Restante</span>
+                <span style="font-family:'JetBrains Mono',monospace; font-size:14px; font-weight:600; color:#ff9a86;">{{ restanteTxt }}</span>
+              </div>
+              <div style="display:flex; justify-content:space-between; align-items:baseline;">
+                <span style="font-size:12px; color:#9aa0b5;">Meta total</span>
+                <span style="font-family:'JetBrains Mono',monospace; font-size:14px; font-weight:600; color:#c7cbdb;">{{ metaTxt }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Evolución del mes -->
+      <div style="background:linear-gradient(155deg,rgba(255,255,255,0.075),rgba(255,255,255,0.02)); border:1px solid rgba(255,255,255,0.08); border-radius:22px; -webkit-backdrop-filter:blur(22px); backdrop-filter:blur(22px); box-shadow:0 18px 50px -20px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.09); padding:26px;">
+        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:22px;">
+          <h2 style="font-size:16px; font-weight:700; margin:0;">Evolución del saldo</h2>
+          <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:#6b7089;">Día del mes</span>
+        </div>
+        <svg viewBox="0 0 680 190" preserveAspectRatio="none" style="width:100%; height:200px; display:block; overflow:visible;">
+          <defs>
+            <linearGradient id="netoFill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#a99bff" stop-opacity="0.32"></stop>
+              <stop offset="1" stop-color="#a99bff" stop-opacity="0"></stop>
+            </linearGradient>
+          </defs>
+          <line x1="0" x2="680" y1="{{ yZero }}" y2="{{ yZero }}" stroke="rgba(255,255,255,0.14)" stroke-width="1" stroke-dasharray="3 4"></line>
+          <path d="{{ netoArea }}" fill="url(#netoFill)"></path>
+          <polyline points="{{ netoLine }}" fill="none" stroke="#a99bff" stroke-width="2.5" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round" style="filter:drop-shadow(0 3px 10px rgba(169,155,255,0.4));"></polyline>
+        </svg>
+        <div style="display:flex; justify-content:space-between; font-family:'JetBrains Mono',monospace; font-size:10px; color:#6b7089; margin-top:10px;">
+          <span>1</span><span>8</span><span>15</span><span>22</span><span>31</span>
+        </div>
+      </div>
+
+      <!-- KPI strip -->
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:16px;">
+        <div style="background:linear-gradient(155deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02)); border:1px solid rgba(255,255,255,0.07); border-radius:18px; -webkit-backdrop-filter:blur(18px); backdrop-filter:blur(18px); padding:20px;">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;"><span style="width:8px;height:8px;border-radius:50%;background:#9ec2ff;"></span><span style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:#9aa0b5;">Sueldo turnos</span></div>
+          <div style="font-size:22px; font-weight:700; font-variant-numeric:tabular-nums;">{{ sueldoTxt }}</div>
+        </div>
+        <div style="background:linear-gradient(155deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02)); border:1px solid rgba(255,255,255,0.07); border-radius:18px; -webkit-backdrop-filter:blur(18px); backdrop-filter:blur(18px); padding:20px;">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;"><span style="width:8px;height:8px;border-radius:50%;background:#ffce8a;"></span><span style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:#9aa0b5;">Propinas</span></div>
+          <div style="font-size:22px; font-weight:700; font-variant-numeric:tabular-nums;">{{ propinasTxt }}</div>
+        </div>
+        <div style="background:linear-gradient(155deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02)); border:1px solid rgba(255,255,255,0.07); border-radius:18px; -webkit-backdrop-filter:blur(18px); backdrop-filter:blur(18px); padding:20px;">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;"><span style="width:8px;height:8px;border-radius:50%;background:#ff9a86;"></span><span style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:#9aa0b5;">Egresos fijos</span></div>
+          <div style="font-size:22px; font-weight:700; font-variant-numeric:tabular-nums;">{{ egresosFijosTxt }}</div>
+        </div>
+        <div style="background:linear-gradient(155deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02)); border:1px solid rgba(255,255,255,0.07); border-radius:18px; -webkit-backdrop-filter:blur(18px); backdrop-filter:blur(18px); padding:20px;">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;"><span style="width:8px;height:8px;border-radius:50%;background:#a99bff;"></span><span style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:#9aa0b5;">Abonado deuda</span></div>
+          <div style="font-size:22px; font-weight:700; font-variant-numeric:tabular-nums;">{{ abonadoTxt }}</div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- ============ INGRESOS ============ -->
+    <sc-if value="{{ isIngresos }}" hint-placeholder-val="{{ true }}">
+    <div style="background:linear-gradient(155deg,rgba(255,255,255,0.075),rgba(255,255,255,0.02)); border:1px solid rgba(255,255,255,0.08); border-radius:22px; -webkit-backdrop-filter:blur(22px); backdrop-filter:blur(22px); box-shadow:0 18px 50px -20px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.09); padding:26px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <div>
+          <h2 style="font-size:18px; font-weight:700; margin:0 0 4px;">Ingresos diarios</h2>
+          <p style="color:#9aa0b5; font-size:13px; margin:0;">Tu registro a mano: turno y propinas de cada día.</p>
+        </div>
+        <button style="display:flex; align-items:center; gap:7px; background:rgba(126,224,184,0.14); border:1px solid rgba(126,224,184,0.3); color:#7ee0b8; border-radius:12px; padding:9px 15px; font-family:'Manrope',sans-serif; font-size:13px; font-weight:600; cursor:pointer;">+ Añadir día</button>
+      </div>
+      <div style="display:grid; grid-template-columns:90px 1fr 1fr 1fr; gap:14px; font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:#6b7089; padding:18px 6px 12px; border-bottom:1px solid rgba(255,255,255,0.08);">
+        <span>Día</span><span style="text-align:right;">Turno</span><span style="text-align:right;">Propinas</span><span style="text-align:right;">Total día</span>
+      </div>
+      <sc-for list="{{ ingresosView }}" as="r" hint-placeholder-count="6">
+        <div style="display:grid; grid-template-columns:90px 1fr 1fr 1fr; gap:14px; align-items:center; padding:11px 6px; border-bottom:1px solid rgba(255,255,255,0.05);">
+          <span style="font-family:'JetBrains Mono',monospace; font-size:13px; color:#c7cbdb;">{{ r.diaTxt }}</span>
+          <input class="fin-inp" style="text-align:right;" value="{{ r.turnoTxt }}">
+          <input class="fin-inp" style="text-align:right;" value="{{ r.propinasTxt }}">
+          <span style="text-align:right; font-family:'JetBrains Mono',monospace; font-size:14px; font-weight:600; color:#7ee0b8;">{{ r.totalTxt }}</span>
+        </div>
+      </sc-for>
+      <div style="display:flex; justify-content:space-between; align-items:baseline; margin-top:20px; padding-top:16px;">
+        <span style="font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:#9aa0b5;">Total ingresos del mes</span>
+        <span style="font-size:26px; font-weight:800; color:#7ee0b8; font-variant-numeric:tabular-nums;">{{ brutoTxt }}</span>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- ============ EGRESOS ============ -->
+    <sc-if value="{{ isEgresos }}" hint-placeholder-val="{{ true }}">
+    <div style="background:linear-gradient(155deg,rgba(255,255,255,0.075),rgba(255,255,255,0.02)); border:1px solid rgba(255,255,255,0.08); border-radius:22px; -webkit-backdrop-filter:blur(22px); backdrop-filter:blur(22px); box-shadow:0 18px 50px -20px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.09); padding:26px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <div>
+          <h2 style="font-size:18px; font-weight:700; margin:0 0 4px;">Egresos fijos</h2>
+          <p style="color:#9aa0b5; font-size:13px; margin:0;">Gastos recurrentes con su día de pago.</p>
+        </div>
+        <button style="display:flex; align-items:center; gap:7px; background:rgba(255,154,134,0.14); border:1px solid rgba(255,154,134,0.3); color:#ff9a86; border-radius:12px; padding:9px 15px; font-family:'Manrope',sans-serif; font-size:13px; font-weight:600; cursor:pointer;">+ Añadir egreso</button>
+      </div>
+      <div style="display:grid; grid-template-columns:16px 1fr 1fr 90px; gap:14px; font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:#6b7089; padding:18px 6px 12px; border-bottom:1px solid rgba(255,255,255,0.08);">
+        <span></span><span>Nombre</span><span style="text-align:right;">Monto</span><span style="text-align:right;">Día pago</span>
+      </div>
+      <sc-for list="{{ egresosView }}" as="e" hint-placeholder-count="5">
+        <div style="display:grid; grid-template-columns:16px 1fr 1fr 90px; gap:14px; align-items:center; padding:11px 6px; border-bottom:1px solid rgba(255,255,255,0.05);">
+          <span style="width:10px; height:10px; border-radius:50%; background:{{ e.color }};"></span>
+          <input class="fin-inp" style="background:transparent; border-color:transparent;" value="{{ e.nombre }}">
+          <input class="fin-inp" style="text-align:right;" value="{{ e.montoTxt }}">
+          <span style="text-align:right; font-family:'JetBrains Mono',monospace; font-size:13px; color:#c7cbdb;">{{ e.diaTxt }}</span>
+        </div>
+      </sc-for>
+      <div style="display:flex; justify-content:space-between; align-items:baseline; margin-top:20px; padding-top:16px;">
+        <span style="font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:#9aa0b5;">Total egresos fijos</span>
+        <span style="font-size:26px; font-weight:800; color:#ff9a86; font-variant-numeric:tabular-nums;">{{ egresosFijosTxt }}</span>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- ============ DEUDA ============ -->
+    <sc-if value="{{ isDeuda }}" hint-placeholder-val="{{ true }}">
+    <div style="display:flex; flex-direction:column; gap:20px;">
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px;">
+        <div style="background:linear-gradient(155deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02)); border:1px solid rgba(255,255,255,0.07); border-radius:18px; -webkit-backdrop-filter:blur(18px); backdrop-filter:blur(18px); padding:20px;">
+          <div style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:#9aa0b5; margin-bottom:10px;">Meta total</div>
+          <div style="font-size:22px; font-weight:700; font-variant-numeric:tabular-nums;">{{ metaTxt }}</div>
+        </div>
+        <div style="background:linear-gradient(155deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02)); border:1px solid rgba(255,255,255,0.07); border-radius:18px; -webkit-backdrop-filter:blur(18px); backdrop-filter:blur(18px); padding:20px;">
+          <div style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:#9aa0b5; margin-bottom:10px;">Abonado</div>
+          <div style="font-size:22px; font-weight:700; color:#a99bff; font-variant-numeric:tabular-nums;">{{ abonadoTxt }}</div>
+        </div>
+        <div style="background:linear-gradient(155deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02)); border:1px solid rgba(255,255,255,0.07); border-radius:18px; -webkit-backdrop-filter:blur(18px); backdrop-filter:blur(18px); padding:20px;">
+          <div style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:#9aa0b5; margin-bottom:10px;">Restante</div>
+          <div style="font-size:22px; font-weight:700; color:#ff9a86; font-variant-numeric:tabular-nums;">{{ restanteTxt }}</div>
+        </div>
+        <div style="background:linear-gradient(155deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02)); border:1px solid rgba(255,255,255,0.07); border-radius:18px; -webkit-backdrop-filter:blur(18px); backdrop-filter:blur(18px); padding:20px;">
+          <div style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:#9aa0b5; margin-bottom:10px;">Progreso</div>
+          <div style="font-size:22px; font-weight:700; color:#a99bff; font-variant-numeric:tabular-nums;">{{ deudaPctTxt }}</div>
+        </div>
+      </div>
+
+      <div style="background:linear-gradient(155deg,rgba(255,255,255,0.075),rgba(255,255,255,0.02)); border:1px solid rgba(255,255,255,0.08); border-radius:22px; -webkit-backdrop-filter:blur(22px); backdrop-filter:blur(22px); box-shadow:0 18px 50px -20px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.09); padding:26px;">
+        <div style="height:10px; border-radius:999px; background:rgba(255,255,255,0.06); overflow:hidden; margin-bottom:24px;">
+          <div style="height:100%; border-radius:999px; background:linear-gradient(90deg,#a99bff,#9ec2ff); box-shadow:0 0 14px rgba(169,155,255,0.5); width:{{ deudaPctTxt }};"></div>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <h2 style="font-size:16px; font-weight:700; margin:0;">Abonos realizados</h2>
+          <button style="display:flex; align-items:center; gap:7px; background:rgba(169,155,255,0.14); border:1px solid rgba(169,155,255,0.3); color:#a99bff; border-radius:12px; padding:8px 14px; font-family:'Manrope',sans-serif; font-size:13px; font-weight:600; cursor:pointer;">+ Añadir abono</button>
+        </div>
+        <sc-for list="{{ abonosView }}" as="a" hint-placeholder-count="2">
+          <div style="display:grid; grid-template-columns:1fr auto auto; gap:16px; align-items:center; padding:14px 6px; border-bottom:1px solid rgba(255,255,255,0.05);">
+            <span style="font-size:14px; color:#eef0f7;">{{ a.nota }}</span>
+            <span style="font-family:'JetBrains Mono',monospace; font-size:12px; color:#6b7089;">Día {{ a.diaTxt }}</span>
+            <span style="font-family:'JetBrains Mono',monospace; font-size:15px; font-weight:600; color:#a99bff;">{{ a.montoTxt }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- ============ BANCO ============ -->
+    <sc-if value="{{ isBanco }}" hint-placeholder-val="{{ true }}">
+    <div style="display:flex; flex-direction:column; gap:20px;">
+      <div style="display:flex; align-items:flex-start; gap:14px; background:rgba(158,194,255,0.08); border:1px solid rgba(158,194,255,0.18); border-radius:18px; padding:18px 20px;">
+        <span style="font-size:18px; line-height:1.3;">🏦</span>
+        <div>
+          <h2 style="font-size:16px; font-weight:700; margin:0 0 4px;">Comparación con el banco</h2>
+          <p style="color:#9aa0b5; font-size:13px; margin:0;">Tu registro a mano manda. Aquí solo revisamos dónde <strong style="color:#c7cbdb; font-weight:600;">no cuadra</strong> con la cartola, sin reemplazar tus datos.</p>
+        </div>
+      </div>
+
+      <div style="background:linear-gradient(155deg,rgba(255,255,255,0.075),rgba(255,255,255,0.02)); border:1px solid rgba(255,255,255,0.08); border-radius:22px; -webkit-backdrop-filter:blur(22px); backdrop-filter:blur(22px); box-shadow:0 18px 50px -20px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.09); padding:26px;">
+        <div style="display:grid; grid-template-columns:80px 1fr 1fr 1fr 120px; gap:14px; font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:#6b7089; padding:0 6px 14px; border-bottom:1px solid rgba(255,255,255,0.08);">
+          <span>Fecha</span><span>Concepto</span><span style="text-align:right;">A mano</span><span style="text-align:right;">Banco</span><span style="text-align:right;">Estado</span>
+        </div>
+        <sc-for list="{{ bancoView }}" as="b" hint-placeholder-count="6">
+          <div style="display:grid; grid-template-columns:80px 1fr 1fr 1fr 120px; gap:14px; align-items:center; padding:13px 6px; border-bottom:1px solid rgba(255,255,255,0.05);">
+            <span style="font-family:'JetBrains Mono',monospace; font-size:12px; color:#9aa0b5;">{{ b.fecha }}</span>
+            <span style="font-size:13px; color:#eef0f7;">{{ b.concepto }}</span>
+            <span style="text-align:right; font-family:'JetBrains Mono',monospace; font-size:13px; color:#c7cbdb;">{{ b.manualTxt }}</span>
+            <span style="text-align:right; font-family:'JetBrains Mono',monospace; font-size:13px; color:#c7cbdb;">{{ b.bancoTxt }}</span>
+            <span style="display:flex; justify-content:flex-end;"><span style="{{ b.chipStyle }}">{{ b.chipTxt }}</span></span>
+          </div>
+        </sc-for>
+        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-top:20px; padding-top:16px;">
+          <span style="font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:#9aa0b5;">Diferencia total del mes</span>
+          <span style="font-size:22px; font-weight:800; color:#ffce8a; font-variant-numeric:tabular-nums;">{{ difTotalTxt }}</span>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1180,&quot;height&quot;:900},&quot;showGlow&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Ambiente&quot;},&quot;glowColor&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#12b3a6&quot;,&quot;options&quot;:[&quot;#7c6cff&quot;,&quot;#3f6bd8&quot;,&quot;#12b3a6&quot;,&quot;#c05a9e&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Ambiente&quot;}}">
+class Component extends DCLogic {
+  state = { tab: 'resumen' };
+
+  data() {
+    return {
+      meta: 1000000,
+      egresos: [
+        { nombre: 'Arriendo', monto: 480000, dia: 30, color: '#a99bff' },
+        { nombre: 'Internet', monto: 22000, dia: 12, color: '#9ec2ff' },
+        { nombre: 'Gas', monto: 25000, dia: 5, color: '#7ee0b8' },
+        { nombre: 'Gimnasio', monto: 18000, dia: 8, color: '#ffce8a' },
+        { nombre: 'Streaming', monto: 12000, dia: 3, color: '#ff9a86' },
+      ],
+      ingresos: [
+        { dia: 2, turno: 35000, propinas: 12000 },
+        { dia: 4, turno: 35000, propinas: 9000 },
+        { dia: 6, turno: 42000, propinas: 22000 },
+        { dia: 9, turno: 35000, propinas: 15000 },
+        { dia: 11, turno: 35000, propinas: 8000 },
+        { dia: 13, turno: 35000, propinas: 19000 },
+        { dia: 16, turno: 42000, propinas: 26000 },
+        { dia: 18, turno: 35000, propinas: 11000 },
+        { dia: 20, turno: 35000, propinas: 17000 },
+        { dia: 23, turno: 42000, propinas: 24000 },
+        { dia: 25, turno: 35000, propinas: 13000 },
+        { dia: 27, turno: 35000, propinas: 20000 },
+        { dia: 29, turno: 42000, propinas: 28000 },
+        { dia: 30, turno: 42000, propinas: 31000 },
+        { dia: 31, turno: 52000, propinas: 36000 },
+      ],
+      abonos: [
+        { nota: 'Cuota de julio', monto: 150000, dia: 15 },
+        { nota: 'Extra de propinas', monto: 100000, dia: 28 },
+      ],
+      banco: [
+        { fecha: '02 jul', concepto: 'Turno + propinas', manual: 47000, banco: 47000 },
+        { fecha: '06 jul', concepto: 'Turno sábado', manual: 64000, banco: 62000 },
+        { fecha: '12 jul', concepto: 'Internet hogar', manual: -22000, banco: -22000 },
+        { fecha: '16 jul', concepto: 'Turno + propinas', manual: 68000, banco: 71000 },
+        { fecha: '20 jul', concepto: 'Retiro cajero', manual: 0, banco: -30000 },
+        { fecha: '28 jul', concepto: 'Abono universidad', manual: -100000, banco: -100000 },
+      ],
+    };
+  }
+
+  clp(n) { return '$' + Math.round(n).toLocaleString('es-CL'); }
+
+  renderVals() {
+    const d = this.data();
+    const tab = this.state.tab;
+    const set = (t) => () => this.setState({ tab: t });
+
+    const totalSueldo = d.ingresos.reduce((a, i) => a + i.turno, 0);
+    const totalPropinas = d.ingresos.reduce((a, i) => a + i.propinas, 0);
+    const bruto = totalSueldo + totalPropinas;
+    const egresosFijos = d.egresos.reduce((a, e) => a + e.monto, 0);
+    const abonado = d.abonos.reduce((a, x) => a + x.monto, 0);
+    const egresosTot = egresosFijos + abonado;
+    const saldoNeto = bruto - egresosTot;
+    const restante = Math.max(0, d.meta - abonado);
+    const pctDeuda = d.meta > 0 ? Math.min(100, (abonado / d.meta) * 100) : 0;
+    const maxIE = Math.max(bruto, egresosTot, 1);
+
+    // --- Evolución del saldo por día ---
+    const W = 680, H = 190;
+    const egPorDia = {}; for (let i = 1; i <= 31; i++) egPorDia[i] = 0;
+    d.egresos.forEach(e => { if (e.dia >= 1 && e.dia <= 31) egPorDia[e.dia] += e.monto; });
+    d.abonos.forEach(a => { if (a.dia >= 1 && a.dia <= 31) egPorDia[a.dia] += a.monto; });
+    const inPorDia = {}; for (let i = 1; i <= 31; i++) inPorDia[i] = 0;
+    d.ingresos.forEach(i => { if (i.dia >= 1 && i.dia <= 31) inPorDia[i.dia] += (i.turno + i.propinas); });
+    let saldo = 0; const serie = [];
+    for (let dia = 1; dia <= 31; dia++) { saldo += inPorDia[dia] - egPorDia[dia]; serie.push({ dia, y: saldo }); }
+    const vals = serie.map(p => p.y).concat([0]);
+    const minY = Math.min(...vals), maxY = Math.max(...vals);
+    const span = (maxY - minY) || 1;
+    const px = (dia) => ((dia - 1) / 30) * W;
+    const py = (v) => H - ((v - minY) / span) * H;
+    const netoLine = serie.map(p => `${px(p.dia).toFixed(1)},${py(p.y).toFixed(1)}`).join(' ');
+    const netoArea = `M ${px(1).toFixed(1)},${H} L ${netoLine.split(' ').join(' L ')} L ${px(31).toFixed(1)},${H} Z`;
+    const yZero = py(0).toFixed(1);
+
+    // Donut
+    const circ = 2 * Math.PI * 54;
+    const deudaDash = `${(pctDeuda / 100 * circ).toFixed(1)} ${circ.toFixed(1)}`;
+
+    // Views
+    const ingresosView = [...d.ingresos].sort((a, b) => a.dia - b.dia).map(i => ({
+      diaTxt: 'Día ' + i.dia,
+      turnoTxt: this.clp(i.turno),
+      propinasTxt: this.clp(i.propinas),
+      totalTxt: this.clp(i.turno + i.propinas),
+    }));
+    const egresosView = d.egresos.map(e => ({
+      nombre: e.nombre, montoTxt: this.clp(e.monto), diaTxt: 'Día ' + e.dia, color: e.color,
+    }));
+    const abonosView = d.abonos.map(a => ({ nota: a.nota, montoTxt: this.clp(a.monto), diaTxt: String(a.dia) }));
+
+    const chipBase = 'font-family:JetBrains Mono,monospace; font-size:11px; font-weight:600; padding:5px 10px; border-radius:999px; white-space:nowrap;';
+    let difTotal = 0;
+    const bancoView = d.banco.map(b => {
+      const dif = b.manual - b.banco; difTotal += dif;
+      const cuadra = dif === 0;
+      return {
+        fecha: b.fecha, concepto: b.concepto,
+        manualTxt: this.clp(b.manual), bancoTxt: this.clp(b.banco),
+        chipTxt: cuadra ? '✓ Cuadra' : (dif > 0 ? '+' : '') + this.clp(dif),
+        chipStyle: cuadra
+          ? chipBase + 'background:rgba(126,224,184,0.14); border:1px solid rgba(126,224,184,0.3); color:#7ee0b8;'
+          : chipBase + 'background:rgba(255,206,138,0.14); border:1px solid rgba(255,206,138,0.32); color:#ffce8a;',
+      };
+    });
+
+    // Tabs
+    const tabBase = 'font-family:Manrope,sans-serif; font-size:13px; font-weight:600; border:none; cursor:pointer; padding:9px 18px; border-radius:11px; transition:all .2s;';
+    const tabStyle = (name) => tab === name
+      ? tabBase + 'background:rgba(255,255,255,0.11); color:#eef0f7; box-shadow:inset 0 1px 0 rgba(255,255,255,0.14);'
+      : tabBase + 'background:transparent; color:#9aa0b5;';
+
+    // Ambient glow (tweakable)
+    const showGlow = this.props.showGlow ?? true;
+    const gc = this.props.glowColor ?? '#7c6cff';
+    const glow1 = `position:fixed; top:-280px; right:-160px; width:760px; height:760px; border-radius:50%; background:radial-gradient(circle, ${gc} 0%, transparent 68%); filter:blur(30px); opacity:${showGlow ? 0.42 : 0}; pointer-events:none; z-index:0; transition:opacity .4s;`;
+    const glow2 = `position:fixed; bottom:-320px; left:-200px; width:720px; height:720px; border-radius:50%; background:radial-gradient(circle, #3f6bd8 0%, transparent 70%); filter:blur(34px); opacity:${showGlow ? 0.28 : 0}; pointer-events:none; z-index:0; transition:opacity .4s;`;
+
+    return {
+      isResumen: tab === 'resumen', isIngresos: tab === 'ingresos', isEgresos: tab === 'egresos',
+      isDeuda: tab === 'deuda', isBanco: tab === 'banco',
+      goResumen: set('resumen'), goIngresos: set('ingresos'), goEgresos: set('egresos'),
+      goDeuda: set('deuda'), goBanco: set('banco'),
+      tabResumen: tabStyle('resumen'), tabIngresos: tabStyle('ingresos'), tabEgresos: tabStyle('egresos'),
+      tabDeuda: tabStyle('deuda'), tabBanco: tabStyle('banco'),
+      saldoNetoTxt: this.clp(saldoNeto), brutoTxt: this.clp(bruto), egresosTotTxt: this.clp(egresosTot),
+      saldoColor: saldoNeto >= 0 ? '#7ee0b8' : '#ff9a86',
+      saldoChipTxt: saldoNeto >= 0 ? '▲ En positivo' : '▼ En negativo',
+      saldoChipStyle: saldoNeto >= 0
+        ? 'display:flex; align-items:center; gap:8px; background:rgba(126,224,184,0.14); border:1px solid rgba(126,224,184,0.3); color:#7ee0b8; border-radius:999px; padding:7px 14px; font-family:JetBrains Mono,monospace; font-size:12px; font-weight:600;'
+        : 'display:flex; align-items:center; gap:8px; background:rgba(255,154,134,0.14); border:1px solid rgba(255,154,134,0.3); color:#ff9a86; border-radius:999px; padding:7px 14px; font-family:JetBrains Mono,monospace; font-size:12px; font-weight:600;',
+      sueldoTxt: this.clp(totalSueldo), propinasTxt: this.clp(totalPropinas), egresosFijosTxt: this.clp(egresosFijos),
+      abonadoTxt: this.clp(abonado), restanteTxt: this.clp(restante), metaTxt: this.clp(d.meta),
+      deudaPctTxt: Math.round(pctDeuda) + '%', deudaDash,
+      barIngreso: (bruto / maxIE * 100).toFixed(1) + '%', barEgreso: (egresosTot / maxIE * 100).toFixed(1) + '%',
+      netoLine, netoArea, yZero,
+      ingresosView, egresosView, abonosView, bancoView, difTotalTxt: this.clp(difTotal),
+      glow1, glow2,
+    };
+  }
+}
+</script>
+</body>
+</html>

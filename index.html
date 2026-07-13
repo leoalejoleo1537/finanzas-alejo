@@ -3,289 +3,293 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="#f4ede2">
+    <meta name="theme-color" content="#08090f">
     <title>Panel Financiero</title>
     <link rel="manifest" href="manifest.webmanifest">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --papiro: #f4ede2;
-            --papiro-suave: #efe6d8;
-            --ink: #4a443d;
-            --ink-soft: #8a8175;
-            --line: #e4d9c8;
-
-            --sueldo: #a8b4c9;
-            --propina: #e8b896;
-            --egreso: #d9a8a0;
-            --deuda: #b8a0c0;
-            --positivo: #a8c0a0;
-            --negativo: #c97f6f;
-        }
         * { box-sizing: border-box; }
-        html, body {
-            margin: 0; background: var(--papiro); color: var(--ink);
-            font-family: 'Inter', system-ui, sans-serif; font-size: 14px; line-height: 1.6;
-            -webkit-font-smoothing: antialiased;
+        html, body { margin: 0; }
+        body {
+            background: #08090f; color: #eef0f7;
+            font-family: 'Manrope', system-ui, sans-serif; font-size: 14px; line-height: 1.55;
+            -webkit-font-smoothing: antialiased; min-height: 100vh;
         }
-        .wrap { max-width: 1180px; margin: 0 auto; padding: 48px 40px 100px; }
-        @media (max-width: 640px) { .wrap { padding: 32px 20px 80px; } }
+        ::selection { background: rgba(169,155,255,0.3); }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .tnum { font-variant-numeric: tabular-nums; }
+        a { color: #a99bff; text-decoration: none; }
 
-        header.top { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 48px; gap: 24px; flex-wrap: wrap; }
-        .eyebrow { font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.16em; text-transform:uppercase; color:var(--ink-soft); margin:0 0 10px; }
-        .status-dot { display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--positivo); margin-right:8px; vertical-align:middle; }
-        h1 { font-family:'Source Serif 4',serif; font-weight:600; font-size:38px; margin:0; letter-spacing:-0.01em; }
-        .top-actions { display: flex; gap: 24px; align-items: center; }
+        .fin-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+        .fin-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 6px; }
 
-        .month-nav { display:flex; align-items:center; gap:12px; }
-        .month-nav button { border:1px solid var(--line); background:transparent; color:var(--ink); border-radius:2px; padding:2px 11px; font-size:16px; cursor:pointer; }
-        .month-nav button:hover { border-color:var(--ink); }
-        .month-nav .mlabel { font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.06em; text-transform:uppercase; color:var(--ink-soft); min-width:120px; text-align:center; }
-
-        button.action {
-            font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.06em; border:none; background:transparent;
-            color:var(--ink-soft); padding:0 0 4px; cursor:pointer; text-transform:uppercase; border-bottom:1px solid var(--ink-soft);
-            transition:color 0.2s, border-color 0.2s;
+        .glass {
+            background: linear-gradient(155deg, rgba(255,255,255,0.075), rgba(255,255,255,0.02));
+            border: 1px solid rgba(255,255,255,0.08); border-radius: 22px;
+            -webkit-backdrop-filter: blur(22px); backdrop-filter: blur(22px);
+            box-shadow: 0 18px 50px -20px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.09);
         }
-        button.action:hover { color:var(--ink); border-color:var(--ink); }
-
-        section { margin-bottom: 64px; }
-        .section-head { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:20px; }
-        h2 { font-family:'Source Serif 4',serif; font-size:19px; font-weight:600; margin:0; color:var(--ink); }
-        h2 .tag { display:inline-block; width:7px; height:7px; border-radius:50%; margin-right:10px; vertical-align:middle; }
-
-        button.add {
-            font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.04em; text-transform:uppercase;
-            background:none; border:none; color:var(--ink-soft); cursor:pointer; padding:0; transition:color 0.2s;
+        .kpi {
+            background: linear-gradient(155deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+            border: 1px solid rgba(255,255,255,0.07); border-radius: 18px;
+            -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); padding: 20px;
         }
-        button.add:hover { color:var(--ink); }
+        .klabel { font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:#9aa0b5; }
 
-        input[type="number"], input[type="text"], input[type="email"], input[type="password"] {
-            background:transparent; border:none; border-bottom:1px solid transparent; padding:6px 4px;
-            font-family:'Inter',sans-serif; font-size:13px; color:var(--ink); transition:border-color 0.2s; width:100%;
+        input.fin-inp {
+            background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 10px; color: #eef0f7; font-family: 'JetBrains Mono', monospace;
+            font-size: 13px; padding: 8px 10px; width: 100%; transition: border-color .2s, background .2s;
         }
-        input:hover { border-bottom-color: var(--line); }
-        input:focus { outline:none; border-bottom-color:var(--ink); }
-        input[type="number"] { text-align:right; font-family:'IBM Plex Mono',monospace; }
+        input.fin-inp:hover { border-color: rgba(255,255,255,0.18); }
+        input.fin-inp:focus { outline: none; border-color: #a99bff; background: rgba(169,155,255,0.06); }
 
-        .egresos-head, .ingresos-head {
-            display:grid; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.08em; text-transform:uppercase;
-            color:var(--ink-soft); padding:0 4px 10px; border-bottom:1px solid var(--line); margin-bottom:4px;
-        }
-        .egresos-head { grid-template-columns: 1fr 100px 64px 14px 24px; }
-        .egresos-head span:nth-child(2) { text-align:right; }
-        .egresos-head span:nth-child(3) { text-align:center; }
-        .ingresos-head { grid-template-columns: 70px 1fr 1fr 24px; }
-        .ingresos-head span:nth-child(2), .ingresos-head span:nth-child(3) { text-align:right; }
+        .tab-btn { font-family:'Manrope',sans-serif; font-size:13px; font-weight:600; border:none; cursor:pointer; padding:9px 18px; border-radius:11px; transition:all .2s; background:transparent; color:#9aa0b5; }
+        .tab-btn.active { background:rgba(255,255,255,0.11); color:#eef0f7; box-shadow:inset 0 1px 0 rgba(255,255,255,0.14); }
 
-        .row-egreso { display:grid; grid-template-columns:1fr 100px 64px 14px 24px; gap:10px; align-items:center; padding:9px 4px; border-bottom:1px solid var(--papiro-suave); }
-        .row-egreso input[name="dia"] { text-align:center; }
-        .color-chip { width:8px; height:8px; border-radius:50%; margin:0 auto; }
-        .row-ingreso { display:grid; grid-template-columns:70px 1fr 1fr 24px; gap:10px; align-items:center; padding:9px 4px; border-bottom:1px solid var(--papiro-suave); }
-        .row-ingreso .day-cell { display:flex; align-items:center; gap:6px; }
-        .day-cell span { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-soft); }
-        .day-cell input { text-align:center; }
+        .add-btn { display:inline-flex; align-items:center; gap:7px; border-radius:12px; padding:9px 15px; font-family:'Manrope',sans-serif; font-size:13px; font-weight:600; cursor:pointer; transition:filter .2s; }
+        .add-btn:hover { filter:brightness(1.15); }
+        .add-green { background:rgba(126,224,184,0.14); border:1px solid rgba(126,224,184,0.3); color:#7ee0b8; }
+        .add-red { background:rgba(255,154,134,0.14); border:1px solid rgba(255,154,134,0.3); color:#ff9a86; }
+        .add-purple { background:rgba(169,155,255,0.14); border:1px solid rgba(169,155,255,0.3); color:#a99bff; }
 
-        .remove-btn { background:none; border:none; color:var(--line); font-size:17px; line-height:1; cursor:pointer; transition:color 0.2s; padding:0; }
-        .remove-btn:hover { color:var(--negativo); }
+        .remove-x { background:none; border:none; color:rgba(255,255,255,0.22); cursor:pointer; font-size:16px; line-height:1; padding:0; transition:color .2s; }
+        .remove-x:hover { color:#ff9a86; }
 
-        .totals { margin-top:18px; padding-top:14px; display:flex; justify-content:space-between; align-items:baseline; }
-        .totals .label { font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--ink-soft); }
-        .totals .value { font-family:'Source Serif 4',serif; font-size:24px; font-weight:600; }
-        .totals .value.neg { color:var(--negativo); }
-        .totals .value.pos { color:var(--positivo); }
-
-        #ingresos-container { max-height:480px; overflow-y:auto; }
-        #ingresos-container::-webkit-scrollbar { width:3px; }
-        #ingresos-container::-webkit-scrollbar-thumb { background:var(--line); border-radius:2px; }
-
-        .kpi-row { display:flex; flex-wrap:wrap; gap:48px; margin-bottom:12px; }
-        .kpi { min-width:120px; }
-        .kpi .label { font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:8px; }
-        .kpi .value { font-family:'Source Serif 4',serif; font-size:26px; font-weight:600; }
-        .kpi .value.sueldo { color:var(--sueldo); }
-        .kpi .value.propina { color:var(--propina); }
-        .kpi .value.neg { color:var(--negativo); }
-        .kpi .value.pos { color:var(--positivo); }
-
-        .kpi-grid-horizontal { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:32px; margin-bottom:32px; align-items:start; }
-
-        .alert { font-family:'Inter',sans-serif; font-size:13px; padding:0 0 0 16px; border-left:2px solid; margin-bottom:28px; display:none; color:var(--ink); }
-        .alert.show { display:block; }
-        .alert.warn { border-color:var(--negativo); }
-        .alert.ok { border-color:var(--positivo); }
-
-        .chart-wrap { position:relative; height:420px; width:100%; }
-
-        .meta-deuda-row { display:flex; gap:48px; align-items:baseline; margin-bottom:24px; }
-        .meta-deuda-row .field label { display:block; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:8px; }
-        .meta-deuda-row .field input { font-family:'Source Serif 4',serif; font-size:20px; font-weight:600; text-align:left; padding:0; }
-
-        .barra-progreso { background:var(--papiro-suave); border-radius:2px; height:6px; overflow:hidden; margin-bottom:32px; }
-        .barra-progreso .fill { background:var(--deuda); height:100%; width:0%; transition:width 0.4s ease; }
-
-        .fila { display:grid; grid-template-columns:400px 1fr; gap:64px; align-items:start; margin-bottom:64px; }
-        @media (max-width: 1020px) { .fila { grid-template-columns:1fr; } }
+        .icon-btn { width:30px; height:30px; border-radius:9px; border:none; background:rgba(255,255,255,0.06); color:#c7cbdb; cursor:pointer; font-size:15px; transition:background .2s; }
+        .icon-btn:hover { background:rgba(255,255,255,0.12); }
 
         .hidden { display:none !important; }
-        .login-card { max-width:420px; padding:28px; border:1px solid var(--line); border-radius:6px; background:var(--papiro-suave); }
-        .login-card label { display:block; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:6px; }
-        .login-card input { border-bottom:1px solid var(--line); font-size:15px; }
-        .btn-primary { font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.06em; text-transform:uppercase; cursor:pointer; border:1px solid var(--ink); background:var(--ink); color:var(--papiro); padding:10px 18px; border-radius:2px; }
-        .btn-primary:hover { opacity:0.85; }
-        .msg { font-size:12px; margin-top:12px; min-height:18px; }
-        .msg.err { color:var(--negativo); }
-        .msg.ok { color:var(--positivo); }
-        .saved-flash { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--ink); color:var(--papiro); font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.06em; padding:8px 16px; border-radius:3px; opacity:0; transition:opacity 0.3s; pointer-events:none; }
-        .saved-flash.show { opacity:0.92; }
+
+        .flash { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:rgba(169,155,255,0.9); color:#0b0b14; font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.06em; padding:8px 16px; border-radius:999px; opacity:0; transition:opacity .3s; pointer-events:none; z-index:50; font-weight:600; }
+        .flash.show { opacity:1; }
+
+        .row-grid { display:grid; align-items:center; gap:14px; padding:11px 6px; border-bottom:1px solid rgba(255,255,255,0.05); }
+        .head-grid { display:grid; gap:14px; font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:#6b7089; padding:18px 6px 12px; border-bottom:1px solid rgba(255,255,255,0.08); }
+        .g-ing { grid-template-columns:72px 1fr 1fr 88px 24px; }
+        .g-egr { grid-template-columns:16px 1fr 1fr 72px 24px; }
+        .g-abo { grid-template-columns:1fr 84px 64px 24px; }
     </style>
 </head>
 <body>
-    <div class="wrap">
+    <!-- Glow ambiental -->
+    <div style="position:fixed; top:-280px; right:-160px; width:760px; height:760px; border-radius:50%; background:radial-gradient(circle,#7c6cff 0%,transparent 68%); filter:blur(30px); opacity:0.42; pointer-events:none; z-index:0;"></div>
+    <div style="position:fixed; bottom:-320px; left:-200px; width:720px; height:720px; border-radius:50%; background:radial-gradient(circle,#3f6bd8 0%,transparent 70%); filter:blur(34px); opacity:0.28; pointer-events:none; z-index:0;"></div>
+
+    <div class="fin-scroll" style="position:relative; z-index:1; max-width:1180px; margin:0 auto; padding:44px 32px 96px;">
 
         <!-- ===== LOGIN ===== -->
         <section id="login-view">
-            <p class="eyebrow">Operación Personal</p>
-            <h1 style="margin-bottom:8px;">Panel Financiero</h1>
-            <p style="color:var(--ink-soft); margin:0 0 32px;">Entra con tu correo y contraseña.</p>
-            <div class="login-card">
-                <div style="margin-bottom:20px;">
-                    <label>Correo</label>
-                    <input type="email" id="email" autocomplete="username" placeholder="tu@correo.com">
+            <p class="mono" style="font-size:11px; letter-spacing:0.18em; text-transform:uppercase; color:#6b7089; margin:0 0 10px;">Operación personal</p>
+            <h1 style="font-size:30px; font-weight:800; letter-spacing:-0.02em; margin:0 0 6px;">Panel Financiero</h1>
+            <p style="color:#9aa0b5; margin:0 0 28px;">Entra con tu correo y contraseña.</p>
+            <div class="glass" style="max-width:400px; padding:30px;">
+                <div style="margin-bottom:18px;">
+                    <label class="klabel" style="display:block; margin-bottom:8px;">Correo</label>
+                    <input class="fin-inp" type="email" id="email" autocomplete="username" placeholder="tu@correo.com">
                 </div>
                 <div style="margin-bottom:24px;">
-                    <label>Contraseña</label>
-                    <input type="password" id="password" autocomplete="current-password" placeholder="••••••••">
+                    <label class="klabel" style="display:block; margin-bottom:8px;">Contraseña</label>
+                    <input class="fin-inp" type="password" id="password" autocomplete="current-password" placeholder="••••••••">
                 </div>
-                <button class="btn-primary" id="btn-login">Entrar</button>
-                <div id="login-msg" class="msg"></div>
+                <button id="btn-login" class="add-btn add-purple" style="width:100%; justify-content:center; padding:12px;">Entrar</button>
+                <div id="login-msg" class="mono" style="font-size:12px; margin-top:12px; min-height:18px; color:#ff9a86;"></div>
             </div>
         </section>
 
         <!-- ===== APP ===== -->
         <section id="app-view" class="hidden">
-            <header class="top">
+            <!-- HEADER -->
+            <header style="display:flex; justify-content:space-between; align-items:flex-end; gap:24px; flex-wrap:wrap; margin-bottom:32px;">
                 <div>
-                    <p class="eyebrow"><span class="status-dot"></span>En vivo</p>
-                    <h1>Panel Financiero</h1>
+                    <p class="mono" style="font-size:11px; letter-spacing:0.18em; text-transform:uppercase; color:#6b7089; margin:0 0 10px; display:flex; align-items:center; gap:8px;">
+                        <span style="width:7px; height:7px; border-radius:50%; background:#7ee0b8; box-shadow:0 0 10px #7ee0b8;"></span>En vivo · Operación personal
+                    </p>
+                    <h1 id="greeting" style="font-size:30px; font-weight:800; letter-spacing:-0.02em; margin:0;">Hola, Alejo</h1>
                 </div>
-                <div class="top-actions">
-                    <div class="month-nav">
-                        <button type="button" id="mes-prev" title="Mes anterior">‹</button>
-                        <span class="mlabel" id="mes-label">—</span>
-                        <button type="button" id="mes-next" title="Mes siguiente">›</button>
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <div style="display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:7px 8px; -webkit-backdrop-filter:blur(16px); backdrop-filter:blur(16px);">
+                        <button class="icon-btn" id="mes-prev">‹</button>
+                        <span class="mono" id="mes-label" style="font-size:12px; letter-spacing:0.08em; text-transform:uppercase; color:#c7cbdb; min-width:104px; text-align:center;">—</span>
+                        <button class="icon-btn" id="mes-next">›</button>
                     </div>
-                    <button class="action" id="btn-logout">Salir</button>
+                    <button id="btn-logout" class="mono" style="background:none; border:none; color:#6b7089; cursor:pointer; font-size:11px; letter-spacing:0.08em; text-transform:uppercase;">Salir</button>
                 </div>
             </header>
 
-            <!-- Fila 1: Egresos fijos + KPIs -->
-            <div class="fila">
-                <div>
-                    <section>
-                        <div class="section-head">
-                            <h2><span class="tag" style="background:var(--egreso)"></span>Egresos fijos</h2>
-                            <button class="add" onclick="agregarEgreso()">+ Añadir</button>
+            <!-- TABS -->
+            <nav style="display:flex; gap:6px; flex-wrap:wrap; padding:6px; margin-bottom:28px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); border-radius:16px; -webkit-backdrop-filter:blur(16px); backdrop-filter:blur(16px); width:fit-content;">
+                <button class="tab-btn active" data-tab="resumen">Resumen</button>
+                <button class="tab-btn" data-tab="ingresos">Ingresos</button>
+                <button class="tab-btn" data-tab="egresos">Egresos</button>
+                <button class="tab-btn" data-tab="deuda">Deuda</button>
+                <button class="tab-btn" data-tab="banco">Banco</button>
+            </nav>
+
+            <!-- ===== RESUMEN ===== -->
+            <div id="tab-resumen" data-panel style="display:flex; flex-direction:column; gap:20px;">
+                <!-- Hero saldo -->
+                <div style="background:linear-gradient(150deg,rgba(169,155,255,0.16),rgba(126,224,184,0.05) 60%,rgba(255,255,255,0.02)); border:1px solid rgba(255,255,255,0.10); border-radius:26px; -webkit-backdrop-filter:blur(24px); backdrop-filter:blur(24px); box-shadow:0 24px 60px -24px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.12); padding:30px 32px;">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:24px; flex-wrap:wrap;">
+                        <div>
+                            <p class="mono" style="font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:#9aa0b5; margin:0 0 12px;">Saldo neto del mes</p>
+                            <div id="hero-saldo" class="tnum" style="font-size:52px; font-weight:800; letter-spacing:-0.03em; line-height:1;">$0</div>
+                            <p id="hero-sub" style="color:#9aa0b5; margin:14px 0 0; font-size:13px;">—</p>
                         </div>
-                        <div class="egresos-head">
-                            <span>Nombre</span><span>Monto</span><span>Día pago</span><span></span><span></span>
-                        </div>
-                        <div id="egresos-container"></div>
-                        <div class="totals">
-                            <span class="label">Total egresos</span>
-                            <span id="total-egresos" class="value neg">$0</span>
-                        </div>
-                    </section>
-                </div>
-                <div>
-                    <div class="kpi-grid-horizontal">
-                        <div class="kpi"><div class="label">Sueldo bruto</div><div class="value sueldo" id="kpi-sueldo">$0</div></div>
-                        <div class="kpi"><div class="label">Propinas brutas</div><div class="value propina" id="kpi-propinas">$0</div></div>
-                        <div class="kpi"><div class="label">Total bruto</div><div class="value" id="kpi-bruto">$0</div></div>
-                        <div class="kpi"><div class="label">Egresos fijos</div><div class="value" id="kpi-egresos">$0</div></div>
-                        <div class="kpi"><div class="label">Saldo neto final</div><div class="value" id="kpi-saldo">$0</div></div>
+                        <div id="saldo-chip" class="mono" style="display:flex; align-items:center; gap:8px; border-radius:999px; padding:7px 14px; font-size:12px; font-weight:600;">—</div>
                     </div>
-                    <div id="alerta-negativo" class="alert warn">El saldo neto cae por debajo de cero en alguna fecha de pago.</div>
-                    <div id="alerta-ok" class="alert ok">El saldo neto se mantiene positivo durante todo el mes.</div>
+                </div>
+
+                <!-- Ingresos vs egresos + donut -->
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:20px;">
+                    <div class="glass" style="padding:26px;">
+                        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:24px;">
+                            <h2 style="font-size:16px; font-weight:700; margin:0;">Ingresos vs. egresos</h2>
+                            <span class="mono" id="ie-mes" style="font-size:11px; color:#6b7089;"></span>
+                        </div>
+                        <div style="display:flex; flex-direction:column; gap:22px;">
+                            <div>
+                                <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:9px;">
+                                    <span style="display:flex; align-items:center; gap:8px; font-size:13px; color:#c7cbdb;"><span style="width:9px;height:9px;border-radius:3px;background:#7ee0b8;"></span>Ingresos</span>
+                                    <span class="mono" id="ie-ingresos" style="font-size:15px; font-weight:600; color:#7ee0b8;">$0</span>
+                                </div>
+                                <div style="height:12px; border-radius:999px; background:rgba(255,255,255,0.06); overflow:hidden;">
+                                    <div id="bar-ingreso" style="height:100%; border-radius:999px; background:linear-gradient(90deg,#7ee0b8,#9ec2ff); box-shadow:0 0 14px rgba(126,224,184,0.5); width:0%;"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:9px;">
+                                    <span style="display:flex; align-items:center; gap:8px; font-size:13px; color:#c7cbdb;"><span style="width:9px;height:9px;border-radius:3px;background:#ff9a86;"></span>Egresos + abonos</span>
+                                    <span class="mono" id="ie-egresos" style="font-size:15px; font-weight:600; color:#ff9a86;">$0</span>
+                                </div>
+                                <div style="height:12px; border-radius:999px; background:rgba(255,255,255,0.06); overflow:hidden;">
+                                    <div id="bar-egreso" style="height:100%; border-radius:999px; background:linear-gradient(90deg,#ff9a86,#ffce8a); box-shadow:0 0 14px rgba(255,154,134,0.4); width:0%;"></div>
+                                </div>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; padding-top:16px; border-top:1px solid rgba(255,255,255,0.07);">
+                                <span class="mono" style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:#9aa0b5;">Diferencia</span>
+                                <span id="ie-dif" class="tnum" style="font-size:20px; font-weight:700; color:#7ee0b8;">$0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass" style="padding:26px; display:flex; gap:24px; align-items:center;">
+                        <div style="position:relative; flex-shrink:0;">
+                            <svg viewBox="0 0 140 140" style="width:140px; height:140px; display:block;">
+                                <circle cx="70" cy="70" r="54" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="12"></circle>
+                                <circle id="donut-arc" cx="70" cy="70" r="54" fill="none" stroke="#a99bff" stroke-width="12" stroke-linecap="round" transform="rotate(-90 70 70)" stroke-dasharray="0 999" style="filter:drop-shadow(0 0 6px rgba(169,155,255,0.6)); transition:stroke-dasharray .5s;"></circle>
+                            </svg>
+                            <div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                                <span id="donut-pct" style="font-size:26px; font-weight:800; letter-spacing:-0.02em;">0%</span>
+                                <span class="mono" style="font-size:9px; letter-spacing:0.1em; text-transform:uppercase; color:#6b7089;">Abonado</span>
+                            </div>
+                        </div>
+                        <div style="flex:1;">
+                            <h2 style="font-size:16px; font-weight:700; margin:0 0 16px;">Deuda universidad</h2>
+                            <div style="display:flex; flex-direction:column; gap:12px;">
+                                <div style="display:flex; justify-content:space-between; align-items:baseline;"><span style="font-size:12px; color:#9aa0b5;">Abonado</span><span class="mono" id="r-abonado" style="font-size:14px; font-weight:600; color:#a99bff;">$0</span></div>
+                                <div style="display:flex; justify-content:space-between; align-items:baseline;"><span style="font-size:12px; color:#9aa0b5;">Restante</span><span class="mono" id="r-restante" style="font-size:14px; font-weight:600; color:#ff9a86;">$0</span></div>
+                                <div style="display:flex; justify-content:space-between; align-items:baseline;"><span style="font-size:12px; color:#9aa0b5;">Meta total</span><span class="mono" id="r-meta" style="font-size:14px; font-weight:600; color:#c7cbdb;">$0</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Evolución -->
+                <div class="glass" style="padding:26px;">
+                    <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:22px;">
+                        <h2 style="font-size:16px; font-weight:700; margin:0;">Evolución del saldo</h2>
+                        <span class="mono" style="font-size:11px; color:#6b7089;">Día del mes</span>
+                    </div>
+                    <svg viewBox="0 0 680 190" preserveAspectRatio="none" style="width:100%; height:200px; display:block; overflow:visible;">
+                        <defs><linearGradient id="netoFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a99bff" stop-opacity="0.32"></stop><stop offset="1" stop-color="#a99bff" stop-opacity="0"></stop></linearGradient></defs>
+                        <line id="evo-zero" x1="0" x2="680" y1="95" y2="95" stroke="rgba(255,255,255,0.14)" stroke-width="1" stroke-dasharray="3 4"></line>
+                        <path id="evo-area" d="" fill="url(#netoFill)"></path>
+                        <polyline id="evo-line" points="" fill="none" stroke="#a99bff" stroke-width="2.5" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round" style="filter:drop-shadow(0 3px 10px rgba(169,155,255,0.4));"></polyline>
+                    </svg>
+                    <div class="mono" style="display:flex; justify-content:space-between; font-size:10px; color:#6b7089; margin-top:10px;"><span>1</span><span>8</span><span>15</span><span>22</span><span>31</span></div>
+                </div>
+
+                <!-- KPI strip -->
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:16px;">
+                    <div class="kpi"><div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;"><span style="width:8px;height:8px;border-radius:50%;background:#9ec2ff;"></span><span class="klabel">Sueldo turnos</span></div><div id="kpi-sueldo" class="tnum" style="font-size:22px; font-weight:700;">$0</div></div>
+                    <div class="kpi"><div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;"><span style="width:8px;height:8px;border-radius:50%;background:#ffce8a;"></span><span class="klabel">Propinas</span></div><div id="kpi-propinas" class="tnum" style="font-size:22px; font-weight:700;">$0</div></div>
+                    <div class="kpi"><div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;"><span style="width:8px;height:8px;border-radius:50%;background:#ff9a86;"></span><span class="klabel">Egresos fijos</span></div><div id="kpi-egresos" class="tnum" style="font-size:22px; font-weight:700;">$0</div></div>
+                    <div class="kpi"><div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;"><span style="width:8px;height:8px;border-radius:50%;background:#a99bff;"></span><span class="klabel">Abonado deuda</span></div><div id="kpi-abonado" class="tnum" style="font-size:22px; font-weight:700;">$0</div></div>
                 </div>
             </div>
 
-            <!-- Fila 2: Ingresos diarios + Evolución -->
-            <div class="fila">
-                <div>
-                    <section>
-                        <div class="section-head">
-                            <h2><span class="tag" style="background:var(--positivo)"></span>Ingresos diarios</h2>
-                            <button class="add" onclick="agregarIngreso()">+ Añadir</button>
-                        </div>
-                        <div class="ingresos-head"><span>Día</span><span>Propinas</span><span>Turno</span><span></span></div>
-                        <div id="ingresos-container"></div>
-                    </section>
+            <!-- ===== INGRESOS ===== -->
+            <div id="tab-ingresos" data-panel class="glass hidden" style="padding:26px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <div><h2 style="font-size:18px; font-weight:700; margin:0 0 4px;">Ingresos diarios</h2><p style="color:#9aa0b5; font-size:13px; margin:0;">Tu registro a mano: turno y propinas de cada día.</p></div>
+                    <button class="add-btn add-green" id="add-ingreso">+ Añadir día</button>
                 </div>
-                <div>
-                    <div class="section-head">
-                        <h2>Evolución del mes</h2>
-                        <button class="add" id="btn-proyectar" onclick="toggleProyeccion()">Proyectar mes</button>
-                    </div>
-                    <div id="proyeccion-detalle" style="display:none; margin-bottom:24px;">
-                        <div class="kpi-row">
-                            <div class="kpi"><div class="label">Días restantes</div><div class="value" id="proy-dias-restantes" style="font-size:20px;">0</div></div>
-                            <div class="kpi"><div class="label">Prom. propina/día</div><div class="value propina" id="proy-prom-propina" style="font-size:20px;">$0</div></div>
-                            <div class="kpi"><div class="label">Prom. sueldo/día</div><div class="value sueldo" id="proy-prom-sueldo" style="font-size:20px;">$0</div></div>
-                            <div class="kpi"><div class="label">Bruto proyectado</div><div class="value" id="proy-bruto-final" style="font-size:20px;">$0</div></div>
-                            <div class="kpi"><div class="label">Saldo proyectado</div><div class="value" id="proy-saldo-final" style="font-size:20px;">$0</div></div>
-                        </div>
-                    </div>
-                    <div class="chart-wrap" style="height:560px;"><canvas id="financeChart"></canvas></div>
+                <div class="head-grid g-ing"><span>Día</span><span style="text-align:right;">Turno</span><span style="text-align:right;">Propinas</span><span style="text-align:right;">Total</span><span></span></div>
+                <div id="ingresos-body"></div>
+                <div style="display:flex; justify-content:space-between; align-items:baseline; margin-top:20px; padding-top:16px;">
+                    <span class="mono" style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:#9aa0b5;">Total ingresos del mes</span>
+                    <span id="ingresos-total" class="tnum" style="font-size:26px; font-weight:800; color:#7ee0b8;">$0</span>
                 </div>
             </div>
 
-            <!-- Fila 3: Abono universidad + Deuda -->
-            <div class="fila">
-                <div>
-                    <section>
-                        <div class="section-head">
-                            <h2><span class="tag" style="background:var(--deuda)"></span>Abono a la universidad</h2>
-                            <button class="add" onclick="agregarAbono()">+ Añadir abono</button>
-                        </div>
-                        <div class="meta-deuda-row">
-                            <div class="field">
-                                <label>Meta total de la deuda</label>
-                                <input type="number" id="deuda-meta" value="1000000" min="0" onchange="actualizarMetaDeuda(parseFloat(this.value) || 0)">
-                            </div>
-                            <div class="field">
-                                <label>Restante</label>
-                                <div id="deuda-restante-mini" style="font-family:'Source Serif 4',serif; font-size:20px; font-weight:600; color:var(--negativo);">$1.000.000</div>
-                            </div>
-                        </div>
-                        <div class="egresos-head" style="grid-template-columns: 1fr 100px 64px 24px;">
-                            <span>Nota</span><span>Monto</span><span>Día pago</span><span></span>
-                        </div>
-                        <div id="abonos-container"></div>
-                        <div class="totals">
-                            <span class="label">Total abonado</span>
-                            <span id="total-abonos" class="value" style="color:var(--deuda);">$0</span>
-                        </div>
-                    </section>
+            <!-- ===== EGRESOS ===== -->
+            <div id="tab-egresos" data-panel class="glass hidden" style="padding:26px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <div><h2 style="font-size:18px; font-weight:700; margin:0 0 4px;">Egresos fijos</h2><p style="color:#9aa0b5; font-size:13px; margin:0;">Gastos recurrentes con su día de pago.</p></div>
+                    <button class="add-btn add-red" id="add-egreso">+ Añadir egreso</button>
                 </div>
-                <div>
-                    <div class="section-head"><h2><span class="tag" style="background:var(--deuda)"></span>Deuda universitaria</h2></div>
-                    <div class="kpi-row">
-                        <div class="kpi"><div class="label">Meta total</div><div class="value" id="deuda-kpi-meta">$0</div></div>
-                        <div class="kpi"><div class="label">Abonado a la fecha</div><div class="value" style="color:var(--deuda);" id="deuda-kpi-abonado">$0</div></div>
-                        <div class="kpi"><div class="label">Restante</div><div class="value neg" id="deuda-kpi-restante">$0</div></div>
-                        <div class="kpi"><div class="label">Progreso</div><div class="value" id="deuda-porcentaje" style="color:var(--deuda);">0%</div></div>
-                    </div>
-                    <div class="barra-progreso"><div class="fill" id="deuda-barra"></div></div>
-                    <div class="chart-wrap" style="height:380px;"><canvas id="deudaChart"></canvas></div>
+                <div class="head-grid g-egr"><span></span><span>Nombre</span><span style="text-align:right;">Monto</span><span style="text-align:right;">Día</span><span></span></div>
+                <div id="egresos-body"></div>
+                <div style="display:flex; justify-content:space-between; align-items:baseline; margin-top:20px; padding-top:16px;">
+                    <span class="mono" style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:#9aa0b5;">Total egresos fijos</span>
+                    <span id="egresos-total" class="tnum" style="font-size:26px; font-weight:800; color:#ff9a86;">$0</span>
                 </div>
             </div>
+
+            <!-- ===== DEUDA ===== -->
+            <div id="tab-deuda" data-panel class="hidden" style="display:flex; flex-direction:column; gap:20px;">
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px;">
+                    <div class="kpi"><div class="klabel" style="margin-bottom:10px;">Meta total</div><div id="d-meta" class="tnum" style="font-size:22px; font-weight:700;">$0</div></div>
+                    <div class="kpi"><div class="klabel" style="margin-bottom:10px;">Abonado</div><div id="d-abonado" class="tnum" style="font-size:22px; font-weight:700; color:#a99bff;">$0</div></div>
+                    <div class="kpi"><div class="klabel" style="margin-bottom:10px;">Restante</div><div id="d-restante" class="tnum" style="font-size:22px; font-weight:700; color:#ff9a86;">$0</div></div>
+                    <div class="kpi"><div class="klabel" style="margin-bottom:10px;">Progreso</div><div id="d-pct" class="tnum" style="font-size:22px; font-weight:700; color:#a99bff;">0%</div></div>
+                </div>
+                <div class="glass" style="padding:26px;">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:16px; margin-bottom:20px; flex-wrap:wrap;">
+                        <div><label class="klabel" style="display:block; margin-bottom:8px;">Meta total de la deuda</label><input class="fin-inp" type="number" id="meta-input" style="max-width:200px;" min="0"></div>
+                    </div>
+                    <div style="height:10px; border-radius:999px; background:rgba(255,255,255,0.06); overflow:hidden; margin-bottom:24px;">
+                        <div id="d-progress" style="height:100%; border-radius:999px; background:linear-gradient(90deg,#a99bff,#9ec2ff); box-shadow:0 0 14px rgba(169,155,255,0.5); width:0%; transition:width .4s;"></div>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <h2 style="font-size:16px; font-weight:700; margin:0;">Abonos realizados</h2>
+                        <button class="add-btn add-purple" id="add-abono">+ Añadir abono</button>
+                    </div>
+                    <div class="head-grid g-abo"><span>Nota</span><span style="text-align:right;">Monto</span><span style="text-align:right;">Día</span><span></span></div>
+                    <div id="abonos-body"></div>
+                </div>
+            </div>
+
+            <!-- ===== BANCO (antesala cartola) ===== -->
+            <div id="tab-banco" data-panel class="hidden" style="display:flex; flex-direction:column; gap:20px;">
+                <div style="display:flex; align-items:flex-start; gap:14px; background:rgba(158,194,255,0.08); border:1px solid rgba(158,194,255,0.18); border-radius:18px; padding:18px 20px;">
+                    <span style="font-size:18px;">🏦</span>
+                    <div><h2 style="font-size:16px; font-weight:700; margin:0 0 4px;">Comparación con el banco</h2><p style="color:#9aa0b5; font-size:13px; margin:0;">Tu registro a mano manda. Aquí revisarás dónde <strong style="color:#c7cbdb;">no cuadra</strong> con la cartola de Santander, sin reemplazar tus datos.</p></div>
+                </div>
+                <div class="glass" style="padding:48px 26px; text-align:center;">
+                    <div style="font-size:34px; margin-bottom:12px;">🚧</div>
+                    <h2 style="font-size:17px; font-weight:700; margin:0 0 8px;">Próximamente</h2>
+                    <p style="color:#9aa0b5; font-size:13px; max-width:420px; margin:0 auto;">Aquí vas a poder importar tu cartola de Santander (Excel/CSV) y verla comparada con lo que registraste a mano. Es lo siguiente que construiremos.</p>
+                </div>
+            </div>
+
         </section>
     </div>
 
-    <div class="saved-flash" id="saved-flash">Guardado ✓</div>
+    <div class="flash" id="flash">Guardado ✓</div>
 
     <script type="module">
         import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -294,376 +298,224 @@
         const SUPABASE_KEY = 'sb_publishable_LqwpwT8dfxv93ukvwy9BKQ_LWyHd5Ha';
         const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // ===== ESTADO (misma forma que tu Nazaret) =====
         let appState = { egresos: [], ingresos: [], deuda: { meta: 1000000, abonos: [] } };
-        let uid = null;
-        let metaId = null;
+        let uid = null, metaId = null;
         let mes = new Date(); mes.setDate(1);
-        let chartInstance = null, deudaChartInstance = null, proyeccionActiva = false;
-        let recargando = false;
+        let recargando = false, tabActual = 'resumen';
 
-        const COLOR_DEUDA = '#b8a0c0';
-        const PALETA_EGRESOS = ['#d9a8a0','#b8a0c0','#e8c98a','#9cc0b8','#c97f6f','#a8b4c9'];
-        const COLOR_SUELDO = '#a8b4c9', COLOR_PROPINA = '#e8b896', COLOR_NETO = '#7a7264';
+        const PALETA = ['#a99bff','#9ec2ff','#7ee0b8','#ffce8a','#ff9a86'];
         const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-
         const $ = (id) => document.getElementById(id);
-        const flash = () => { const f=$('saved-flash'); f.classList.add('show'); setTimeout(()=>f.classList.remove('show'),1000); };
+        const clp = (n) => '$' + Math.round(Number(n)||0).toLocaleString('es-CL');
+        const escAttr = (s) => String(s ?? '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+        const flash = () => { const f=$('flash'); f.classList.add('show'); setTimeout(()=>f.classList.remove('show'),1000); };
 
-        function rangoMes() {
-            const y = mes.getFullYear(), m = mes.getMonth();
-            const ud = new Date(y, m+1, 0).getDate();
-            const pad = (n)=>String(n).padStart(2,'0');
-            return { primero:`${y}-${pad(m+1)}-01`, ultimo:`${y}-${pad(m+1)}-${pad(ud)}`, ultimoDia: ud };
-        }
-        function fechaDeDia(dia) {
-            const y = mes.getFullYear(), m = mes.getMonth();
-            const d = Math.min(rangoMes().ultimoDia, Math.max(1, parseInt(dia)||1));
-            return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-        }
-        const diaDeFecha = (f) => f ? new Date(f + 'T00:00').getDate() : 1;
+        function rangoMes() { const y=mes.getFullYear(), m=mes.getMonth(), ud=new Date(y,m+1,0).getDate(), p=(n)=>String(n).padStart(2,'0'); return { primero:`${y}-${p(m+1)}-01`, ultimo:`${y}-${p(m+1)}-${p(ud)}`, ultimoDia:ud }; }
+        function fechaDeDia(dia){ const y=mes.getFullYear(), m=mes.getMonth(), d=Math.min(rangoMes().ultimoDia, Math.max(1, parseInt(dia)||1)); return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`; }
+        const diaDeFecha = (f) => f ? new Date(f+'T00:00').getDate() : 1;
+        const clampDia = (v) => Math.min(31, Math.max(1, parseInt(v)||1));
 
         // ===== SESIÓN =====
-        async function refreshSession() {
-            const { data: { session } } = await sb.auth.getSession();
-            if (session) { uid = session.user.id; showApp(); } else showLogin();
-        }
-        function showLogin() { $('app-view').classList.add('hidden'); $('login-view').classList.remove('hidden'); }
-        async function showApp() {
-            $('login-view').classList.add('hidden'); $('app-view').classList.remove('hidden');
-            actualizarLabelMes();
-            await recargar();
-            suscribir();
-        }
+        async function refreshSession(){ const { data:{session} } = await sb.auth.getSession(); if(session){ uid=session.user.id; showApp(); } else showLogin(); }
+        function showLogin(){ $('app-view').classList.add('hidden'); $('login-view').classList.remove('hidden'); }
+        async function showApp(){ $('login-view').classList.add('hidden'); $('app-view').classList.remove('hidden'); saludar(); actualizarLabelMes(); await recargar(); suscribir(); }
+        function saludar(){ const h=new Date().getHours(); const s = h<12?'Buenos días':(h<20?'Buenas tardes':'Buenas noches'); $('greeting').textContent = `${s}, Alejo`; }
 
-        $('btn-login').addEventListener('click', async () => {
-            const msg = $('login-msg'); msg.className='msg'; msg.textContent='Entrando...';
-            const { error } = await sb.auth.signInWithPassword({ email: $('email').value.trim(), password: $('password').value });
-            if (error) { msg.className='msg err'; msg.textContent='No se pudo entrar: ' + error.message; }
-            else { msg.textContent=''; refreshSession(); }
+        $('btn-login').addEventListener('click', async ()=>{
+            const msg=$('login-msg'); msg.style.color='#9aa0b5'; msg.textContent='Entrando...';
+            const { error } = await sb.auth.signInWithPassword({ email:$('email').value.trim(), password:$('password').value });
+            if(error){ msg.style.color='#ff9a86'; msg.textContent='No se pudo entrar: '+error.message; } else { msg.textContent=''; refreshSession(); }
         });
         $('password').addEventListener('keydown', (e)=>{ if(e.key==='Enter') $('btn-login').click(); });
         $('btn-logout').addEventListener('click', async ()=>{ await sb.auth.signOut(); showLogin(); });
 
-        // ===== NAVEGACIÓN DE MES =====
-        function actualizarLabelMes(){ $('mes-label').textContent = `${MESES[mes.getMonth()]} ${mes.getFullYear()}`; }
+        // ===== TABS =====
+        document.querySelectorAll('.tab-btn').forEach(b => b.addEventListener('click', () => {
+            tabActual = b.dataset.tab;
+            document.querySelectorAll('.tab-btn').forEach(x => x.classList.toggle('active', x===b));
+            document.querySelectorAll('[data-panel]').forEach(p => p.classList.toggle('hidden', p.id !== 'tab-'+tabActual));
+        }));
+
+        // ===== MES =====
+        function actualizarLabelMes(){ const l=`${MESES[mes.getMonth()]} ${mes.getFullYear()}`; $('mes-label').textContent=l; $('ie-mes').textContent = MESES[mes.getMonth()].replace(/^./,c=>c.toUpperCase()); }
         $('mes-prev').addEventListener('click', async ()=>{ mes.setMonth(mes.getMonth()-1); actualizarLabelMes(); await recargar(); });
         $('mes-next').addEventListener('click', async ()=>{ mes.setMonth(mes.getMonth()+1); actualizarLabelMes(); await recargar(); });
 
-        // ===== CARGA DESDE SUPABASE =====
-        async function recargar() {
+        // ===== CARGA =====
+        async function recargar(){
             recargando = true;
             const { primero, ultimo } = rangoMes();
             const [egRes, ingRes, metaRes] = await Promise.all([
-                sb.from('egresos_fijos').select('*').order('creado_en', { ascending:true }),
-                sb.from('ingresos_diarios').select('*').gte('fecha', primero).lte('fecha', ultimo).order('fecha', { ascending:true }),
-                sb.from('metas').select('*').eq('tipo','deuda').order('creado_en', { ascending:true }).limit(1)
+                sb.from('egresos_fijos').select('*').order('creado_en',{ascending:true}),
+                sb.from('ingresos_diarios').select('*').gte('fecha',primero).lte('fecha',ultimo).order('fecha',{ascending:true}),
+                sb.from('metas').select('*').eq('tipo','deuda').order('creado_en',{ascending:true}).limit(1)
             ]);
-            if (egRes.error || ingRes.error || metaRes.error) {
-                console.error(egRes.error || ingRes.error || metaRes.error);
-                recargando = false; return;
-            }
+            if(egRes.error||ingRes.error||metaRes.error){ console.error(egRes.error||ingRes.error||metaRes.error); recargando=false; return; }
             let meta = (metaRes.data && metaRes.data[0]) || null;
-            if (!meta) {
-                metaId = crypto.randomUUID();
-                await sb.from('metas').insert({ id: metaId, user_id: uid, nombre:'Universidad', tipo:'deuda', monto_objetivo: 1000000 });
-                meta = { id: metaId, monto_objetivo: 1000000 };
-            }
+            if(!meta){ metaId=crypto.randomUUID(); await sb.from('metas').insert({id:metaId,user_id:uid,nombre:'Universidad',tipo:'deuda',monto_objetivo:1000000}); meta={id:metaId,monto_objetivo:1000000}; }
             metaId = meta.id;
-            const abRes = await sb.from('abonos').select('*').eq('meta_id', metaId).order('creado_en', { ascending:true });
-
-            appState.egresos = (egRes.data||[]).map(r => ({ id:r.id, nombre:r.nombre, monto:Number(r.monto)||0, diaPago:r.dia_pago }));
-            appState.ingresos = (ingRes.data||[]).map(r => ({ id:r.id, dia:diaDeFecha(r.fecha), propinas:Number(r.propinas)||0, turno:Number(r.turno)||0 }));
-            appState.deuda = {
-                meta: Number(meta.monto_objetivo)||0,
-                abonos: (abRes.data||[]).map(r => ({ id:r.id, nota:r.nota||'', monto:Number(r.monto)||0, diaPago:diaDeFecha(r.fecha) }))
-            };
-
-            $('deuda-meta').value = appState.deuda.meta;
-            renderizarEgresos(); renderizarAbonos(); renderizarIngresos(); actualizarGrafica();
+            const abRes = await sb.from('abonos').select('*').eq('meta_id',metaId).order('creado_en',{ascending:true});
+            appState.egresos = (egRes.data||[]).map(r=>({ id:r.id, nombre:r.nombre, monto:Number(r.monto)||0, diaPago:r.dia_pago }));
+            appState.ingresos = (ingRes.data||[]).map(r=>({ id:r.id, dia:diaDeFecha(r.fecha), propinas:Number(r.propinas)||0, turno:Number(r.turno)||0 }));
+            appState.deuda = { meta:Number(meta.monto_objetivo)||0, abonos:(abRes.data||[]).map(r=>({ id:r.id, nota:r.nota||'', monto:Number(r.monto)||0, diaPago:diaDeFecha(r.fecha) })) };
+            renderAll();
             recargando = false;
         }
 
         // ===== TIEMPO REAL =====
-        function suscribir() {
+        let refT=null;
+        function suscribir(){
             sb.channel('finanzas')
-              .on('postgres_changes', { event:'*', schema:'public', table:'egresos_fijos' }, refrescarSuave)
-              .on('postgres_changes', { event:'*', schema:'public', table:'ingresos_diarios' }, refrescarSuave)
-              .on('postgres_changes', { event:'*', schema:'public', table:'abonos' }, refrescarSuave)
-              .on('postgres_changes', { event:'*', schema:'public', table:'metas' }, refrescarSuave)
+              .on('postgres_changes',{event:'*',schema:'public',table:'egresos_fijos'}, soft)
+              .on('postgres_changes',{event:'*',schema:'public',table:'ingresos_diarios'}, soft)
+              .on('postgres_changes',{event:'*',schema:'public',table:'abonos'}, soft)
+              .on('postgres_changes',{event:'*',schema:'public',table:'metas'}, soft)
               .subscribe();
         }
-        let refrescoPendiente = null;
-        function refrescarSuave() {
-            if (document.activeElement && ['INPUT','TEXTAREA'].includes(document.activeElement.tagName)) return; // no interrumpir edición
-            clearTimeout(refrescoPendiente);
-            refrescoPendiente = setTimeout(() => { if (!recargando) recargar(); }, 350);
+        function soft(){ if(document.activeElement && ['INPUT','TEXTAREA'].includes(document.activeElement.tagName)) return; clearTimeout(refT); refT=setTimeout(()=>{ if(!recargando) recargar(); }, 350); }
+
+        // ===== CÁLCULO + RENDER =====
+        function calcular(){
+            const totalSueldo = appState.ingresos.reduce((a,i)=>a+(Number(i.turno)||0),0);
+            const totalPropinas = appState.ingresos.reduce((a,i)=>a+(Number(i.propinas)||0),0);
+            const bruto = totalSueldo+totalPropinas;
+            const egresosFijos = appState.egresos.reduce((a,e)=>a+(Number(e.monto)||0),0);
+            const abonado = appState.deuda.abonos.reduce((a,x)=>a+(Number(x.monto)||0),0);
+            const egresosTot = egresosFijos+abonado;
+            const saldoNeto = bruto-egresosTot;
+            const meta = Number(appState.deuda.meta)||0;
+            const restante = Math.max(0, meta-abonado);
+            const pctDeuda = meta>0 ? Math.min(100,(abonado/meta)*100) : 0;
+            return { totalSueldo, totalPropinas, bruto, egresosFijos, abonado, egresosTot, saldoNeto, meta, restante, pctDeuda };
         }
 
-        // ===== EGRESOS =====
-        function renderizarEgresos() {
-            const c = $('egresos-container'); c.innerHTML=''; let total=0;
-            appState.egresos.forEach((e, i) => {
-                total += (Number(e.monto)||0);
-                const color = PALETA_EGRESOS[i % PALETA_EGRESOS.length];
-                const row = document.createElement('div'); row.className='row-egreso';
+        function renderAll(){ const c=calcular(); renderResumen(c); renderIngresos(); renderEgresos(); renderDeuda(c); }
+
+        function renderResumen(c){
+            $('hero-saldo').textContent = clp(c.saldoNeto);
+            $('hero-sub').textContent = `Con ${clp(c.bruto)} de ingresos y ${clp(c.egresosTot)} en gastos y abonos este mes.`;
+            const chip=$('saldo-chip'), pos=c.saldoNeto>=0;
+            chip.textContent = pos ? '▲ En positivo' : '▼ En negativo';
+            chip.style.background = pos ? 'rgba(126,224,184,0.14)' : 'rgba(255,154,134,0.14)';
+            chip.style.border = pos ? '1px solid rgba(126,224,184,0.3)' : '1px solid rgba(255,154,134,0.3)';
+            chip.style.color = pos ? '#7ee0b8' : '#ff9a86';
+            const maxIE = Math.max(c.bruto, c.egresosTot, 1);
+            $('ie-ingresos').textContent = clp(c.bruto);
+            $('ie-egresos').textContent = clp(c.egresosTot);
+            $('bar-ingreso').style.width = (c.bruto/maxIE*100).toFixed(1)+'%';
+            $('bar-egreso').style.width = (c.egresosTot/maxIE*100).toFixed(1)+'%';
+            const dif=$('ie-dif'); dif.textContent=clp(c.saldoNeto); dif.style.color = c.saldoNeto>=0?'#7ee0b8':'#ff9a86';
+            // donut
+            const circ = 2*Math.PI*54;
+            $('donut-arc').setAttribute('stroke-dasharray', `${(c.pctDeuda/100*circ).toFixed(1)} ${circ.toFixed(1)}`);
+            $('donut-pct').textContent = Math.round(c.pctDeuda)+'%';
+            $('r-abonado').textContent = clp(c.abonado);
+            $('r-restante').textContent = clp(c.restante);
+            $('r-meta').textContent = clp(c.meta);
+            // KPIs
+            $('kpi-sueldo').textContent = clp(c.totalSueldo);
+            $('kpi-propinas').textContent = clp(c.totalPropinas);
+            $('kpi-egresos').textContent = clp(c.egresosFijos);
+            $('kpi-abonado').textContent = clp(c.abonado);
+            // evolución
+            renderEvolucion();
+        }
+
+        function renderEvolucion(){
+            const W=680, H=190;
+            const egDia={}, inDia={};
+            for(let i=1;i<=31;i++){ egDia[i]=0; inDia[i]=0; }
+            appState.egresos.forEach(e=>{ if(e.diaPago>=1&&e.diaPago<=31) egDia[e.diaPago]+=(Number(e.monto)||0); });
+            appState.deuda.abonos.forEach(a=>{ if(a.diaPago>=1&&a.diaPago<=31) egDia[a.diaPago]+=(Number(a.monto)||0); });
+            appState.ingresos.forEach(i=>{ if(i.dia>=1&&i.dia<=31) inDia[i.dia]+=((Number(i.turno)||0)+(Number(i.propinas)||0)); });
+            let saldo=0; const serie=[];
+            for(let d=1;d<=31;d++){ saldo += inDia[d]-egDia[d]; serie.push({dia:d,y:saldo}); }
+            const vals = serie.map(p=>p.y).concat([0]);
+            const minY=Math.min(...vals), maxY=Math.max(...vals), span=(maxY-minY)||1;
+            const px=(d)=>((d-1)/30)*W, py=(v)=>H-((v-minY)/span)*H;
+            const line = serie.map(p=>`${px(p.dia).toFixed(1)},${py(p.y).toFixed(1)}`).join(' ');
+            $('evo-line').setAttribute('points', line);
+            $('evo-area').setAttribute('d', `M ${px(1).toFixed(1)},${H} L ${serie.map(p=>`${px(p.dia).toFixed(1)},${py(p.y).toFixed(1)}`).join(' L ')} L ${px(31).toFixed(1)},${H} Z`);
+            const yz=py(0).toFixed(1); $('evo-zero').setAttribute('y1',yz); $('evo-zero').setAttribute('y2',yz);
+        }
+
+        function renderIngresos(){
+            const body=$('ingresos-body'); body.innerHTML='';
+            const orden=[...appState.ingresos].sort((a,b)=>a.dia-b.dia);
+            orden.forEach(i=>{
+                const total=(Number(i.turno)||0)+(Number(i.propinas)||0);
+                const row=document.createElement('div'); row.className='row-grid g-ing';
                 row.innerHTML = `
-                    <input type="text" value="${escapeAttr(e.nombre)}" onchange="actualizarEgreso('${e.id}','nombre',this.value)" placeholder="Nombre">
-                    <input type="number" value="${e.monto}" min="0" onchange="actualizarEgreso('${e.id}','monto',parseFloat(this.value)||0)" placeholder="Monto">
-                    <input type="number" name="dia" value="${e.diaPago}" min="1" max="31" onchange="actualizarEgreso('${e.id}','diaPago',clampDia(this.value))" title="Día de pago">
-                    <span class="color-chip" style="background:${color}"></span>
-                    <button class="remove-btn" onclick="eliminarEgreso('${e.id}')" title="Eliminar">&times;</button>`;
-                c.appendChild(row);
+                    <input class="fin-inp" type="number" min="1" max="31" value="${i.dia}" onchange="actualizarIngreso('${i.id}','dia',clampDia(this.value))" style="padding:6px; text-align:center;">
+                    <input class="fin-inp" type="number" min="0" value="${i.turno}" onchange="actualizarIngreso('${i.id}','turno',parseFloat(this.value)||0)" style="text-align:right;">
+                    <input class="fin-inp" type="number" min="0" value="${i.propinas}" onchange="actualizarIngreso('${i.id}','propinas',parseFloat(this.value)||0)" style="text-align:right;">
+                    <span class="mono tnum" style="text-align:right; font-size:14px; font-weight:600; color:#7ee0b8;">${clp(total)}</span>
+                    <button class="remove-x" onclick="eliminarIngreso('${i.id}')" title="Eliminar">&times;</button>`;
+                body.appendChild(row);
             });
-            $('total-egresos').innerText = '$' + total.toLocaleString('es-CL');
-        }
-        async function agregarEgreso() {
-            const e = { id: crypto.randomUUID(), nombre:'Nuevo egreso', monto:0, diaPago:1 };
-            appState.egresos.push(e); renderizarEgresos(); actualizarGrafica();
-            const { error } = await sb.from('egresos_fijos').insert({ id:e.id, user_id:uid, nombre:e.nombre, monto:e.monto, dia_pago:e.diaPago });
-            if (error) console.error(error); else flash();
-        }
-        async function actualizarEgreso(id, campo, valor) {
-            const e = appState.egresos.find(x=>x.id===id); if(!e) return;
-            e[campo]=valor; renderizarEgresos(); actualizarGrafica();
-            const col = campo==='diaPago' ? 'dia_pago' : campo;
-            const { error } = await sb.from('egresos_fijos').update({ [col]: valor }).eq('id', id);
-            if (error) console.error(error); else flash();
-        }
-        async function eliminarEgreso(id) {
-            appState.egresos = appState.egresos.filter(x=>x.id!==id); renderizarEgresos(); actualizarGrafica();
-            await sb.from('egresos_fijos').delete().eq('id', id); flash();
+            if(!orden.length) body.innerHTML = '<p style="color:#6b7089; font-size:13px; padding:16px 6px;">Sin ingresos este mes. Toca “+ Añadir día”.</p>';
+            $('ingresos-total').textContent = clp(appState.ingresos.reduce((a,i)=>a+(Number(i.turno)||0)+(Number(i.propinas)||0),0));
         }
 
-        // ===== ABONOS / DEUDA =====
-        function renderizarAbonos() {
-            const c = $('abonos-container'); c.innerHTML=''; let total=0;
-            appState.deuda.abonos.forEach((a) => {
-                total += (Number(a.monto)||0);
-                const row = document.createElement('div'); row.className='row-egreso'; row.style.gridTemplateColumns='1fr 100px 64px 24px';
+        function renderEgresos(){
+            const body=$('egresos-body'); body.innerHTML='';
+            appState.egresos.forEach((e,idx)=>{
+                const row=document.createElement('div'); row.className='row-grid g-egr';
                 row.innerHTML = `
-                    <input type="text" value="${escapeAttr(a.nota||'')}" onchange="actualizarAbono('${a.id}','nota',this.value)" placeholder="Ej: cuota marzo">
-                    <input type="number" value="${a.monto}" min="0" onchange="actualizarAbono('${a.id}','monto',parseFloat(this.value)||0)" placeholder="Monto">
-                    <input type="number" value="${a.diaPago}" min="1" max="31" onchange="actualizarAbono('${a.id}','diaPago',clampDia(this.value))" title="Día de pago">
-                    <button class="remove-btn" onclick="eliminarAbono('${a.id}')" title="Eliminar">&times;</button>`;
-                c.appendChild(row);
+                    <span style="width:10px; height:10px; border-radius:50%; background:${PALETA[idx%PALETA.length]};"></span>
+                    <input class="fin-inp" type="text" value="${escAttr(e.nombre)}" onchange="actualizarEgreso('${e.id}','nombre',this.value)" style="background:transparent; border-color:transparent;">
+                    <input class="fin-inp" type="number" min="0" value="${e.monto}" onchange="actualizarEgreso('${e.id}','monto',parseFloat(this.value)||0)" style="text-align:right;">
+                    <input class="fin-inp" type="number" min="1" max="31" value="${e.diaPago}" onchange="actualizarEgreso('${e.id}','diaPago',clampDia(this.value))" style="padding:6px; text-align:center;">
+                    <button class="remove-x" onclick="eliminarEgreso('${e.id}')" title="Eliminar">&times;</button>`;
+                body.appendChild(row);
             });
-            $('total-abonos').innerText = '$' + total.toLocaleString('es-CL');
-            const restante = Math.max(0, (Number(appState.deuda.meta)||0) - total);
-            $('deuda-restante-mini').innerText = '$' + restante.toLocaleString('es-CL');
-        }
-        async function agregarAbono() {
-            const a = { id: crypto.randomUUID(), nota:'', monto:0, diaPago:1 };
-            appState.deuda.abonos.push(a); renderizarAbonos(); actualizarGrafica();
-            const { error } = await sb.from('abonos').insert({ id:a.id, user_id:uid, meta_id:metaId, nota:a.nota, monto:a.monto, fecha:fechaDeDia(a.diaPago) });
-            if (error) console.error(error); else flash();
-        }
-        async function actualizarAbono(id, campo, valor) {
-            const a = appState.deuda.abonos.find(x=>x.id===id); if(!a) return;
-            a[campo]=valor; renderizarAbonos(); actualizarGrafica();
-            const patch = campo==='diaPago' ? { fecha: fechaDeDia(valor) } : { [campo]: valor };
-            const { error } = await sb.from('abonos').update(patch).eq('id', id);
-            if (error) console.error(error); else flash();
-        }
-        async function eliminarAbono(id) {
-            appState.deuda.abonos = appState.deuda.abonos.filter(x=>x.id!==id); renderizarAbonos(); actualizarGrafica();
-            await sb.from('abonos').delete().eq('id', id); flash();
-        }
-        async function actualizarMetaDeuda(valor) {
-            appState.deuda.meta = valor; renderizarAbonos(); actualizarGrafica();
-            const { error } = await sb.from('metas').update({ monto_objetivo: valor }).eq('id', metaId);
-            if (error) console.error(error); else flash();
+            if(!appState.egresos.length) body.innerHTML = '<p style="color:#6b7089; font-size:13px; padding:16px 6px;">Sin egresos fijos. Toca “+ Añadir egreso”.</p>';
+            $('egresos-total').textContent = clp(appState.egresos.reduce((a,e)=>a+(Number(e.monto)||0),0));
         }
 
-        // ===== INGRESOS =====
-        function renderizarIngresos() {
-            const c = $('ingresos-container'); c.innerHTML='';
-            appState.ingresos.sort((a,b)=>a.dia-b.dia);
-            appState.ingresos.forEach((ing) => {
-                const row = document.createElement('div'); row.className='row-ingreso';
+        function renderDeuda(c){
+            $('d-meta').textContent = clp(c.meta);
+            $('d-abonado').textContent = clp(c.abonado);
+            $('d-restante').textContent = clp(c.restante);
+            $('d-pct').textContent = Math.round(c.pctDeuda)+'%';
+            $('d-progress').style.width = c.pctDeuda.toFixed(1)+'%';
+            if(document.activeElement !== $('meta-input')) $('meta-input').value = c.meta;
+            const body=$('abonos-body'); body.innerHTML='';
+            appState.deuda.abonos.forEach(a=>{
+                const row=document.createElement('div'); row.className='row-grid g-abo';
                 row.innerHTML = `
-                    <div class="day-cell"><span>Día</span>
-                        <input type="number" min="1" max="31" value="${ing.dia}" onchange="actualizarIngreso('${ing.id}','dia',clampDia(this.value))">
-                    </div>
-                    <input type="number" value="${ing.propinas}" min="0" onchange="actualizarIngreso('${ing.id}','propinas',parseFloat(this.value)||0)" placeholder="0">
-                    <input type="number" value="${ing.turno}" min="0" onchange="actualizarIngreso('${ing.id}','turno',parseFloat(this.value)||0)" placeholder="0">
-                    <button class="remove-btn" onclick="eliminarIngreso('${ing.id}')" title="Eliminar">&times;</button>`;
-                c.appendChild(row);
+                    <input class="fin-inp" type="text" value="${escAttr(a.nota)}" onchange="actualizarAbono('${a.id}','nota',this.value)" placeholder="Ej: cuota julio" style="background:transparent; border-color:transparent;">
+                    <input class="fin-inp" type="number" min="0" value="${a.monto}" onchange="actualizarAbono('${a.id}','monto',parseFloat(this.value)||0)" style="text-align:right;">
+                    <input class="fin-inp" type="number" min="1" max="31" value="${a.diaPago}" onchange="actualizarAbono('${a.id}','diaPago',clampDia(this.value))" style="padding:6px; text-align:center;">
+                    <button class="remove-x" onclick="eliminarAbono('${a.id}')" title="Eliminar">&times;</button>`;
+                body.appendChild(row);
             });
-        }
-        function clampDia(valor){ let v=parseInt(valor)||1; return Math.min(31, Math.max(1, v)); }
-        async function agregarIngreso() {
-            const ultimoDia = appState.ingresos.length>0 ? Math.min(31, appState.ingresos[appState.ingresos.length-1].dia+1) : 1;
-            const ing = { id: crypto.randomUUID(), dia:ultimoDia, propinas:0, turno:0 };
-            appState.ingresos.push(ing); renderizarIngresos(); actualizarGrafica();
-            const { error } = await sb.from('ingresos_diarios').insert({ id:ing.id, user_id:uid, fecha:fechaDeDia(ing.dia), propinas:ing.propinas, turno:ing.turno });
-            if (error) console.error(error); else flash();
-        }
-        async function actualizarIngreso(id, campo, valor) {
-            const ing = appState.ingresos.find(i=>i.id===id); if(!ing) return;
-            ing[campo]=valor; if(campo==='dia') renderizarIngresos(); actualizarGrafica();
-            const patch = campo==='dia' ? { fecha: fechaDeDia(valor) } : { [campo]: valor };
-            const { error } = await sb.from('ingresos_diarios').update(patch).eq('id', id);
-            if (error) console.error(error); else flash();
-        }
-        async function eliminarIngreso(id) {
-            appState.ingresos = appState.ingresos.filter(i=>i.id!==id); renderizarIngresos(); actualizarGrafica();
-            await sb.from('ingresos_diarios').delete().eq('id', id); flash();
+            if(!appState.deuda.abonos.length) body.innerHTML = '<p style="color:#6b7089; font-size:13px; padding:16px 6px;">Sin abonos aún. Toca “+ Añadir abono”.</p>';
         }
 
-        function escapeAttr(str){ return String(str).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+        // ===== MUTACIONES =====
+        async function agregarEgreso(){ const e={id:crypto.randomUUID(),nombre:'Nuevo egreso',monto:0,diaPago:1}; appState.egresos.push(e); renderAll(); const {error}=await sb.from('egresos_fijos').insert({id:e.id,user_id:uid,nombre:e.nombre,monto:e.monto,dia_pago:e.diaPago}); error?console.error(error):flash(); }
+        async function actualizarEgreso(id,campo,valor){ const e=appState.egresos.find(x=>x.id===id); if(!e)return; e[campo]=valor; renderAll(); const col=campo==='diaPago'?'dia_pago':campo; const {error}=await sb.from('egresos_fijos').update({[col]:valor}).eq('id',id); error?console.error(error):flash(); }
+        async function eliminarEgreso(id){ appState.egresos=appState.egresos.filter(x=>x.id!==id); renderAll(); await sb.from('egresos_fijos').delete().eq('id',id); flash(); }
 
-        // ===== GRÁFICA PRINCIPAL (idéntica a tu Nazaret) =====
-        function actualizarGrafica() {
-            const ctx = $('financeChart').getContext('2d');
-            let sueldoPorDia={}, propinaPorDia={};
-            for (let i=1;i<=31;i++){ sueldoPorDia[i]=0; propinaPorDia[i]=0; }
-            appState.ingresos.forEach(ing=>{ if(ing.dia>=1&&ing.dia<=31){ sueldoPorDia[ing.dia]+=(Number(ing.turno)||0); propinaPorDia[ing.dia]+=(Number(ing.propinas)||0); }});
-            let egresosPorDia={}; for(let i=1;i<=31;i++) egresosPorDia[i]=[];
-            appState.egresos.forEach(e=>{ const m=Number(e.monto)||0; if(m>0&&e.diaPago>=1&&e.diaPago<=31) egresosPorDia[e.diaPago].push(e); });
-            appState.deuda.abonos.forEach(a=>{ const m=Number(a.monto)||0; if(m>0&&a.diaPago>=1&&a.diaPago<=31) egresosPorDia[a.diaPago].push({ nombre:a.nota?`Abono universidad (${a.nota})`:'Abono universidad', monto:m, esDeuda:true }); });
+        async function agregarIngreso(){ const ult=appState.ingresos.length?Math.min(31,Math.max(...appState.ingresos.map(i=>i.dia))+1):1; const i={id:crypto.randomUUID(),dia:ult,turno:0,propinas:0}; appState.ingresos.push(i); renderAll(); const {error}=await sb.from('ingresos_diarios').insert({id:i.id,user_id:uid,fecha:fechaDeDia(i.dia),turno:i.turno,propinas:i.propinas}); error?console.error(error):flash(); }
+        async function actualizarIngreso(id,campo,valor){ const i=appState.ingresos.find(x=>x.id===id); if(!i)return; i[campo]=valor; renderAll(); const patch=campo==='dia'?{fecha:fechaDeDia(valor)}:{[campo]:valor}; const {error}=await sb.from('ingresos_diarios').update(patch).eq('id',id); error?console.error(error):flash(); }
+        async function eliminarIngreso(id){ appState.ingresos=appState.ingresos.filter(x=>x.id!==id); renderAll(); await sb.from('ingresos_diarios').delete().eq('id',id); flash(); }
 
-            const totalSueldo=Object.values(sueldoPorDia).reduce((a,b)=>a+b,0);
-            const totalPropinas=Object.values(propinaPorDia).reduce((a,b)=>a+b,0);
-            const totalAbonosDeuda=appState.deuda.abonos.reduce((a,ab)=>a+(Number(ab.monto)||0),0);
-            const totalEgresos=appState.egresos.reduce((a,e)=>a+(Number(e.monto)||0),0)+totalAbonosDeuda;
+        async function agregarAbono(){ const a={id:crypto.randomUUID(),nota:'',monto:0,diaPago:1}; appState.deuda.abonos.push(a); renderAll(); const {error}=await sb.from('abonos').insert({id:a.id,user_id:uid,meta_id:metaId,nota:a.nota,monto:a.monto,fecha:fechaDeDia(a.diaPago)}); error?console.error(error):flash(); }
+        async function actualizarAbono(id,campo,valor){ const a=appState.deuda.abonos.find(x=>x.id===id); if(!a)return; a[campo]=valor; renderAll(); const patch=campo==='diaPago'?{fecha:fechaDeDia(valor)}:{[campo]:valor}; const {error}=await sb.from('abonos').update(patch).eq('id',id); error?console.error(error):flash(); }
+        async function eliminarAbono(id){ appState.deuda.abonos=appState.deuda.abonos.filter(x=>x.id!==id); renderAll(); await sb.from('abonos').delete().eq('id',id); flash(); }
 
-            let netoPoints=[{x:0,y:0}], sueldoBrutoPoints=[{x:0,y:0}], propinaBrutoPoints=[{x:0,y:0}];
-            let saldoNeto=0, acumSueldo=0, acumPropina=0, cayoBajoCero=false, diasConCaida=[];
+        async function actualizarMeta(valor){ appState.deuda.meta=valor; renderAll(); const {error}=await sb.from('metas').update({monto_objetivo:valor}).eq('id',metaId); error?console.error(error):flash(); }
 
-            for (let dia=1;dia<=31;dia++){
-                const iS=sueldoPorDia[dia], iP=propinaPorDia[dia], iD=iS+iP;
-                if(iD>0){ saldoNeto+=iD; acumSueldo+=iS; acumPropina+=iP; }
-                const eh=egresosPorDia[dia];
-                if(eh.length>0){
-                    netoPoints.push({x:dia,y:saldoNeto});
-                    eh.forEach(e=>{ saldoNeto-=(Number(e.monto)||0); netoPoints.push({x:dia,y:saldoNeto,egreso:e.nombre}); if(saldoNeto<0){ cayoBajoCero=true; diasConCaida.push(e.nombre);} });
-                } else if(iD>0){ netoPoints.push({x:dia,y:saldoNeto}); }
-                else { const u=netoPoints[netoPoints.length-1]; if(u.x!==dia) netoPoints.push({x:dia,y:saldoNeto}); }
-                if(iS>0||sueldoBrutoPoints[sueldoBrutoPoints.length-1].x!==dia) sueldoBrutoPoints.push({x:dia,y:acumSueldo});
-                if(iP>0||propinaBrutoPoints[propinaBrutoPoints.length-1].x!==dia) propinaBrutoPoints.push({x:dia,y:acumPropina});
-            }
-            if(netoPoints[netoPoints.length-1].x!==31) netoPoints.push({x:31,y:saldoNeto});
-            if(sueldoBrutoPoints[sueldoBrutoPoints.length-1].x!==31) sueldoBrutoPoints.push({x:31,y:acumSueldo});
-            if(propinaBrutoPoints[propinaBrutoPoints.length-1].x!==31) propinaBrutoPoints.push({x:31,y:acumPropina});
+        $('add-egreso').addEventListener('click', agregarEgreso);
+        $('add-ingreso').addEventListener('click', agregarIngreso);
+        $('add-abono').addEventListener('click', agregarAbono);
+        $('meta-input').addEventListener('change', (e)=> actualizarMeta(parseFloat(e.target.value)||0));
 
-            const totalBruto=totalSueldo+totalPropinas;
-            $('kpi-sueldo').innerText='$'+totalSueldo.toLocaleString('es-CL');
-            $('kpi-propinas').innerText='$'+totalPropinas.toLocaleString('es-CL');
-            $('kpi-bruto').innerText='$'+totalBruto.toLocaleString('es-CL');
-            $('kpi-egresos').innerText='$'+totalEgresos.toLocaleString('es-CL');
-            const kSaldo=$('kpi-saldo'); kSaldo.innerText='$'+saldoNeto.toLocaleString('es-CL'); kSaldo.classList.toggle('neg', saldoNeto<0);
+        Object.assign(window, { actualizarEgreso, eliminarEgreso, actualizarIngreso, eliminarIngreso, actualizarAbono, eliminarAbono, clampDia });
 
-            const aN=$('alerta-negativo'), aO=$('alerta-ok');
-            aN.classList.toggle('show', cayoBajoCero); aO.classList.toggle('show', !cayoBajoCero && totalEgresos>0);
-            if(cayoBajoCero){ aN.innerText=`Saldo negativo al pagar: ${[...new Set(diasConCaida)].join(', ')}.`; }
-
-            let datasets=[
-                { label:'Saldo neto', data:netoPoints, borderColor:COLOR_NETO, backgroundColor:'rgba(122,114,100,0.10)', borderWidth:2.5, fill:true, tension:0.15, pointBackgroundColor:'#f4ede2', pointBorderColor:COLOR_NETO, pointBorderWidth:1.5, pointRadius:0, pointHoverRadius:5, order:1 },
-                { label:'Sueldo acumulado', data:sueldoBrutoPoints, borderColor:COLOR_SUELDO, backgroundColor:'rgba(168,180,201,0.18)', borderWidth:1.5, fill:true, tension:0.15, pointRadius:0, order:3 },
-                { label:'Propinas acumuladas', data:propinaBrutoPoints, borderColor:COLOR_PROPINA, backgroundColor:'rgba(232,184,150,0.18)', borderWidth:1.5, fill:true, tension:0.15, pointRadius:0, order:2 }
-            ];
-
-            if (proyeccionActiva) {
-                const proy = calcularProyeccion(sueldoPorDia, propinaPorDia, egresosPorDia, saldoNeto, acumSueldo, acumPropina);
-                if (proy) {
-                    datasets.push({ label:'Saldo proyectado', data:proy.netoProyectado, borderColor:COLOR_NETO, backgroundColor:'transparent', borderWidth:1.5, borderDash:[5,4], fill:false, tension:0.15, pointRadius:0, order:1 });
-                    datasets.push({ label:'Sueldo proyectado', data:proy.sueldoProyectado, borderColor:COLOR_SUELDO, backgroundColor:'transparent', borderWidth:1, borderDash:[2,3], fill:false, tension:0.15, pointRadius:0, order:3 });
-                    datasets.push({ label:'Propinas proyectadas', data:proy.propinaProyectado, borderColor:COLOR_PROPINA, backgroundColor:'transparent', borderWidth:1, borderDash:[2,3], fill:false, tension:0.15, pointRadius:0, order:3 });
-                    $('proy-dias-restantes').innerText=proy.diasRestantes;
-                    $('proy-prom-propina').innerText='$'+Math.round(proy.promPropina).toLocaleString('es-CL');
-                    $('proy-prom-sueldo').innerText='$'+Math.round(proy.promSueldo).toLocaleString('es-CL');
-                    $('proy-bruto-final').innerText='$'+Math.round(proy.brutoFinal).toLocaleString('es-CL');
-                    const ps=$('proy-saldo-final'); ps.innerText='$'+Math.round(proy.saldoFinal).toLocaleString('es-CL'); ps.classList.toggle('neg', proy.saldoFinal<0);
-                }
-            }
-
-            if (chartInstance) chartInstance.destroy();
-            const lineasVerticales=[];
-            appState.egresos.forEach((e,idx)=>{ const m=Number(e.monto)||0; if(m>0&&e.diaPago>=1&&e.diaPago<=31) lineasVerticales.push({ dia:e.diaPago, color:PALETA_EGRESOS[idx%PALETA_EGRESOS.length] }); });
-
-            chartInstance = new Chart(ctx, {
-                type:'scatter', data:{datasets},
-                options:{ responsive:true, maintainAspectRatio:false, showLine:true, interaction:{mode:'nearest',intersect:false},
-                    scales:{
-                        x:{ type:'linear', position:'bottom', min:0, max:31, title:{display:true,text:'Día del mes',font:{family:"'IBM Plex Mono',monospace",size:11},color:'#8a8175'}, ticks:{stepSize:1,font:{family:"'IBM Plex Mono',monospace",size:10},color:'#8a8175'}, grid:{color:'#e4d9c8',drawTicks:false} },
-                        y:{ title:{display:true,text:'Monto (CLP)',font:{family:"'IBM Plex Mono',monospace",size:11},color:'#8a8175'}, ticks:{font:{family:"'IBM Plex Mono',monospace",size:10},color:'#8a8175',callback:v=>'$'+v.toLocaleString('es-CL')}, grid:{color:'#e4d9c8',drawTicks:false} }
-                    },
-                    plugins:{
-                        legend:{ position:'bottom', labels:{font:{family:"'IBM Plex Mono',monospace",size:10},color:'#4a443d',boxWidth:10,boxHeight:10,usePointStyle:true,pointStyle:'circle'} },
-                        tooltip:{ backgroundColor:'#4a443d', titleFont:{family:"'IBM Plex Mono',monospace",size:11}, bodyFont:{family:"'IBM Plex Mono',monospace",size:11}, callbacks:{ label:(c)=>c.dataset.label+': $'+c.parsed.y.toLocaleString('es-CL') } }
-                    }
-                },
-                plugins:[{ id:'lineasPago', afterDraw:(chart)=>{ const {ctx,chartArea,scales}=chart; ctx.save(); lineasVerticales.forEach(l=>{ const x=scales.x.getPixelForValue(l.dia); if(x<chartArea.left||x>chartArea.right) return; ctx.strokeStyle=l.color; ctx.lineWidth=1; ctx.setLineDash([3,4]); ctx.globalAlpha=0.6; ctx.beginPath(); ctx.moveTo(x,chartArea.top); ctx.lineTo(x,chartArea.bottom); ctx.stroke(); }); ctx.restore(); } }]
-            });
-            actualizarGraficaDeuda();
-        }
-
-        function actualizarGraficaDeuda() {
-            const meta=Number(appState.deuda.meta)||0;
-            const abonos=[...appState.deuda.abonos].filter(a=>(Number(a.monto)||0)>0&&a.diaPago>=1&&a.diaPago<=31).sort((a,b)=>a.diaPago-b.diaPago);
-            const totalAbonado=abonos.reduce((a,ab)=>a+(Number(ab.monto)||0),0);
-            const restante=meta-totalAbonado;
-            const porcentaje=meta>0?Math.min(100,Math.max(0,(totalAbonado/meta)*100)):0;
-            $('deuda-kpi-meta').innerText='$'+meta.toLocaleString('es-CL');
-            $('deuda-kpi-abonado').innerText='$'+totalAbonado.toLocaleString('es-CL');
-            const kR=$('deuda-kpi-restante'); kR.innerText='$'+Math.max(0,restante).toLocaleString('es-CL'); kR.classList.toggle('neg',restante>0); kR.classList.toggle('pos',restante<=0);
-            $('deuda-porcentaje').innerText=Math.round(porcentaje)+'%';
-            $('deuda-barra').style.width=porcentaje+'%';
-            $('deuda-barra').style.background = (restante<=0&&meta>0) ? 'var(--positivo)' : 'var(--deuda)';
-
-            let saldoPendiente=meta; let pts=[{x:0,y:saldoPendiente}];
-            abonos.forEach(ab=>{ pts.push({x:ab.diaPago,y:saldoPendiente}); saldoPendiente-=(Number(ab.monto)||0); pts.push({x:ab.diaPago,y:saldoPendiente}); });
-            if(pts[pts.length-1].x!==31) pts.push({x:31,y:saldoPendiente});
-
-            const ctx=$('deudaChart').getContext('2d');
-            if(deudaChartInstance) deudaChartInstance.destroy();
-            deudaChartInstance = new Chart(ctx, {
-                type:'scatter', data:{ datasets:[
-                    { label:'Saldo pendiente', data:pts, borderColor:COLOR_DEUDA, backgroundColor:'rgba(184,160,192,0.14)', borderWidth:2.5, fill:true, tension:0.1, pointRadius:0, pointHoverRadius:5, order:1 },
-                    { label:'Saldada', data:[{x:0,y:0},{x:31,y:0}], borderColor:'#cfc6b8', borderWidth:1, borderDash:[3,3], fill:false, pointRadius:0, order:2 }
-                ]},
-                options:{ responsive:true, maintainAspectRatio:false, showLine:true, interaction:{mode:'nearest',intersect:false},
-                    scales:{
-                        x:{ type:'linear', position:'bottom', min:0, max:31, title:{display:true,text:'Día del mes',font:{family:"'IBM Plex Mono',monospace",size:11},color:'#8a8175'}, ticks:{stepSize:1,font:{family:"'IBM Plex Mono',monospace",size:10},color:'#8a8175'}, grid:{color:'#e4d9c8',drawTicks:false} },
-                        y:{ min:Math.min(0,saldoPendiente), title:{display:true,text:'Saldo pendiente (CLP)',font:{family:"'IBM Plex Mono',monospace",size:11},color:'#8a8175'}, ticks:{font:{family:"'IBM Plex Mono',monospace",size:10},color:'#8a8175',callback:v=>'$'+v.toLocaleString('es-CL')}, grid:{color:'#e4d9c8',drawTicks:false} }
-                    },
-                    plugins:{ legend:{ position:'bottom', labels:{font:{family:"'IBM Plex Mono',monospace",size:10},color:'#4a443d',boxWidth:10,boxHeight:10,usePointStyle:true,pointStyle:'circle'} },
-                        tooltip:{ backgroundColor:'#4a443d', titleFont:{family:"'IBM Plex Mono',monospace",size:11}, bodyFont:{family:"'IBM Plex Mono',monospace",size:11}, callbacks:{ label:(c)=>c.dataset.label+': $'+c.parsed.y.toLocaleString('es-CL') } } }
-                }
-            });
-        }
-
-        function toggleProyeccion() {
-            proyeccionActiva=!proyeccionActiva;
-            $('btn-proyectar').innerText = proyeccionActiva ? 'Quitar proyección' : 'Proyectar mes';
-            $('proyeccion-detalle').style.display = proyeccionActiva ? 'block' : 'none';
-            actualizarGrafica();
-        }
-        function promedioRecortado(v){ if(v.length===0) return 0; if(v.length<4) return v.reduce((a,b)=>a+b,0)/v.length; const o=[...v].sort((a,b)=>a-b).slice(1,-1); return o.reduce((a,b)=>a+b,0)/o.length; }
-        function calcularProyeccion(sueldoPorDia, propinaPorDia, egresosPorDia, saldoNetoActual, acumSueldoActual, acumPropinaActual) {
-            const dcd=appState.ingresos.map(i=>i.dia).filter(d=>d>=1&&d<=31); if(dcd.length===0) return null;
-            const hoy=Math.max(...dcd); const diasRestantes=31-hoy; if(diasRestantes<=0) return null;
-            const pp=[]; for(let d=1;d<=hoy;d++) if(propinaPorDia[d]>0) pp.push(propinaPorDia[d]);
-            const promPropina= pp.length>0 ? pp.reduce((a,b)=>a+b,0)/pp.length : 0;
-            const sp=[]; for(let d=1;d<=hoy;d++) if(sueldoPorDia[d]>0) sp.push(sueldoPorDia[d]);
-            const promSueldo=promedioRecortado(sp);
-            let netoProyectado=[{x:hoy,y:saldoNetoActual}], sueldoProyectado=[{x:hoy,y:acumSueldoActual}], propinaProyectado=[{x:hoy,y:acumPropinaActual}];
-            let saldoProy=saldoNetoActual, acumS=acumSueldoActual, acumP=acumPropinaActual;
-            for(let dia=hoy+1;dia<=31;dia++){
-                saldoProy+=promSueldo+promPropina; acumS+=promSueldo; acumP+=promPropina;
-                const eh=egresosPorDia[dia]||[];
-                if(eh.length>0){ netoProyectado.push({x:dia,y:saldoProy}); eh.forEach(e=>{ saldoProy-=(Number(e.monto)||0); netoProyectado.push({x:dia,y:saldoProy}); }); }
-                else netoProyectado.push({x:dia,y:saldoProy});
-                sueldoProyectado.push({x:dia,y:acumS}); propinaProyectado.push({x:dia,y:acumP});
-            }
-            return { diasRestantes, promPropina, promSueldo, brutoFinal:acumS+acumP, saldoFinal:saldoProy, netoProyectado, sueldoProyectado, propinaProyectado };
-        }
-
-        // Exponer handlers para los onclick/onchange del HTML
-        Object.assign(window, { agregarEgreso, actualizarEgreso, eliminarEgreso, agregarAbono, actualizarAbono, eliminarAbono, actualizarMetaDeuda, agregarIngreso, actualizarIngreso, eliminarIngreso, clampDia, toggleProyeccion });
-
-        if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+        if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
         refreshSession();
     </script>
 </body>
