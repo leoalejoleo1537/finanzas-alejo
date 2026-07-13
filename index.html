@@ -6,6 +6,7 @@
     <meta name="theme-color" content="#08090f">
     <title>Panel Financiero</title>
     <link rel="manifest" href="manifest.webmanifest">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -54,6 +55,12 @@
         .add-green { background:rgba(126,224,184,0.14); border:1px solid rgba(126,224,184,0.3); color:#7ee0b8; }
         .add-red { background:rgba(255,154,134,0.14); border:1px solid rgba(255,154,134,0.3); color:#ff9a86; }
         .add-purple { background:rgba(169,155,255,0.14); border:1px solid rgba(169,155,255,0.3); color:#a99bff; }
+        .btn-mini { font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.04em; border-radius:9px; padding:6px 10px; cursor:pointer; background:rgba(169,155,255,0.12); border:1px solid rgba(169,155,255,0.28); color:#a99bff; transition:filter .2s; white-space:nowrap; }
+        .btn-mini:hover { filter:brightness(1.2); }
+        .btn-mini.confirm { background:rgba(126,224,184,0.16); border-color:rgba(126,224,184,0.4); color:#7ee0b8; }
+
+        .ghost-btn { font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.05em; text-transform:uppercase; background:none; border:1px solid rgba(255,255,255,0.12); color:#9aa0b5; border-radius:10px; padding:6px 12px; cursor:pointer; transition:color .2s, border-color .2s; }
+        .ghost-btn:hover { color:#eef0f7; border-color:rgba(255,255,255,0.3); }
 
         .remove-x { background:none; border:none; color:rgba(255,255,255,0.22); cursor:pointer; font-size:16px; line-height:1; padding:0; transition:color .2s; }
         .remove-x:hover { color:#ff9a86; }
@@ -71,10 +78,11 @@
         .g-ing { grid-template-columns:72px 1fr 1fr 88px 24px; }
         .g-egr { grid-template-columns:16px 1fr 1fr 72px 24px; }
         .g-abo { grid-template-columns:1fr 84px 64px 24px; }
+        .g-meta { grid-template-columns:16px 1fr 110px auto 24px; }
+        .g-mov { grid-template-columns:72px 1fr 110px 24px; }
     </style>
 </head>
 <body>
-    <!-- Glow ambiental -->
     <div style="position:fixed; top:-280px; right:-160px; width:760px; height:760px; border-radius:50%; background:radial-gradient(circle,#7c6cff 0%,transparent 68%); filter:blur(30px); opacity:0.42; pointer-events:none; z-index:0;"></div>
     <div style="position:fixed; bottom:-320px; left:-200px; width:720px; height:720px; border-radius:50%; background:radial-gradient(circle,#3f6bd8 0%,transparent 70%); filter:blur(34px); opacity:0.28; pointer-events:none; z-index:0;"></div>
 
@@ -101,7 +109,6 @@
 
         <!-- ===== APP ===== -->
         <section id="app-view" class="hidden">
-            <!-- HEADER -->
             <header style="display:flex; justify-content:space-between; align-items:flex-end; gap:24px; flex-wrap:wrap; margin-bottom:32px;">
                 <div>
                     <p class="mono" style="font-size:11px; letter-spacing:0.18em; text-transform:uppercase; color:#6b7089; margin:0 0 10px; display:flex; align-items:center; gap:8px;">
@@ -119,30 +126,39 @@
                 </div>
             </header>
 
-            <!-- TABS -->
+            <div id="mig-banner" class="hidden" style="display:flex; align-items:flex-start; gap:12px; background:rgba(255,206,138,0.1); border:1px solid rgba(255,206,138,0.3); border-radius:14px; padding:14px 18px; margin-bottom:24px;">
+                <span style="font-size:16px;">⚠️</span>
+                <p style="margin:0; font-size:13px; color:#ffce8a;">Falta un paso: ejecuta <span class="mono">db/migracion-01-metas-saldo.sql</span> en Supabase (SQL Editor) para activar las metas de compra y el arrastre de saldo.</p>
+            </div>
+
             <nav style="display:flex; gap:6px; flex-wrap:wrap; padding:6px; margin-bottom:28px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); border-radius:16px; -webkit-backdrop-filter:blur(16px); backdrop-filter:blur(16px); width:fit-content;">
                 <button class="tab-btn active" data-tab="resumen">Resumen</button>
                 <button class="tab-btn" data-tab="ingresos">Ingresos</button>
                 <button class="tab-btn" data-tab="egresos">Egresos</button>
-                <button class="tab-btn" data-tab="deuda">Deuda</button>
+                <button class="tab-btn" data-tab="deuda">Metas</button>
                 <button class="tab-btn" data-tab="banco">Banco</button>
             </nav>
 
             <!-- ===== RESUMEN ===== -->
             <div id="tab-resumen" data-panel style="display:flex; flex-direction:column; gap:20px;">
-                <!-- Hero saldo -->
                 <div style="background:linear-gradient(150deg,rgba(169,155,255,0.16),rgba(126,224,184,0.05) 60%,rgba(255,255,255,0.02)); border:1px solid rgba(255,255,255,0.10); border-radius:26px; -webkit-backdrop-filter:blur(24px); backdrop-filter:blur(24px); box-shadow:0 24px 60px -24px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.12); padding:30px 32px;">
                     <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:24px; flex-wrap:wrap;">
                         <div>
-                            <p class="mono" style="font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:#9aa0b5; margin:0 0 12px;">Saldo neto del mes</p>
+                            <p class="mono" style="font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:#9aa0b5; margin:0 0 12px;">Saldo disponible</p>
                             <div id="hero-saldo" class="tnum" style="font-size:52px; font-weight:800; letter-spacing:-0.03em; line-height:1;">$0</div>
                             <p id="hero-sub" style="color:#9aa0b5; margin:14px 0 0; font-size:13px;">—</p>
                         </div>
-                        <div id="saldo-chip" class="mono" style="display:flex; align-items:center; gap:8px; border-radius:999px; padding:7px 14px; font-size:12px; font-weight:600;">—</div>
+                        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:14px;">
+                            <div id="saldo-chip" class="mono" style="display:flex; align-items:center; gap:8px; border-radius:999px; padding:7px 14px; font-size:12px; font-weight:600;">—</div>
+                            <div style="text-align:right;">
+                                <label class="klabel" style="display:block; margin-bottom:6px;">Saldo inicial del mes</label>
+                                <input class="fin-inp" type="number" id="saldo-inicial-input" style="max-width:170px; text-align:right;">
+                                <div id="saldo-inicial-note" class="mono" style="font-size:10px; color:#6b7089; margin-top:5px;">—</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Ingresos vs egresos + donut -->
                 <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:20px;">
                     <div class="glass" style="padding:26px;">
                         <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:24px;">
@@ -169,7 +185,7 @@
                                 </div>
                             </div>
                             <div style="display:flex; justify-content:space-between; align-items:center; padding-top:16px; border-top:1px solid rgba(255,255,255,0.07);">
-                                <span class="mono" style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:#9aa0b5;">Diferencia</span>
+                                <span class="mono" style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:#9aa0b5;">Flujo del mes</span>
                                 <span id="ie-dif" class="tnum" style="font-size:20px; font-weight:700; color:#7ee0b8;">$0</span>
                             </div>
                         </div>
@@ -197,27 +213,20 @@
                     </div>
                 </div>
 
-                <!-- Evolución -->
                 <div class="glass" style="padding:26px;">
-                    <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:22px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; gap:12px; flex-wrap:wrap;">
                         <h2 style="font-size:16px; font-weight:700; margin:0;">Evolución del saldo</h2>
-                        <span class="mono" style="font-size:11px; color:#6b7089;">Día del mes</span>
+                        <button class="ghost-btn" id="btn-proyeccion">Quitar proyección</button>
                     </div>
-                    <svg viewBox="0 0 680 190" preserveAspectRatio="none" style="width:100%; height:200px; display:block; overflow:visible;">
-                        <defs><linearGradient id="netoFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a99bff" stop-opacity="0.32"></stop><stop offset="1" stop-color="#a99bff" stop-opacity="0"></stop></linearGradient></defs>
-                        <line id="evo-zero" x1="0" x2="680" y1="95" y2="95" stroke="rgba(255,255,255,0.14)" stroke-width="1" stroke-dasharray="3 4"></line>
-                        <path id="evo-area" d="" fill="url(#netoFill)"></path>
-                        <polyline id="evo-line" points="" fill="none" stroke="#a99bff" stroke-width="2.5" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round" style="filter:drop-shadow(0 3px 10px rgba(169,155,255,0.4));"></polyline>
-                    </svg>
-                    <div class="mono" style="display:flex; justify-content:space-between; font-size:10px; color:#6b7089; margin-top:10px;"><span>1</span><span>8</span><span>15</span><span>22</span><span>31</span></div>
+                    <p class="mono" id="proy-info" style="font-size:11px; color:#6b7089; margin:0 0 18px;"></p>
+                    <div style="position:relative; height:360px;"><canvas id="evoChart"></canvas></div>
                 </div>
 
-                <!-- KPI strip -->
                 <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:16px;">
                     <div class="kpi"><div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;"><span style="width:8px;height:8px;border-radius:50%;background:#9ec2ff;"></span><span class="klabel">Sueldo turnos</span></div><div id="kpi-sueldo" class="tnum" style="font-size:22px; font-weight:700;">$0</div></div>
                     <div class="kpi"><div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;"><span style="width:8px;height:8px;border-radius:50%;background:#ffce8a;"></span><span class="klabel">Propinas</span></div><div id="kpi-propinas" class="tnum" style="font-size:22px; font-weight:700;">$0</div></div>
                     <div class="kpi"><div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;"><span style="width:8px;height:8px;border-radius:50%;background:#ff9a86;"></span><span class="klabel">Egresos fijos</span></div><div id="kpi-egresos" class="tnum" style="font-size:22px; font-weight:700;">$0</div></div>
-                    <div class="kpi"><div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;"><span style="width:8px;height:8px;border-radius:50%;background:#a99bff;"></span><span class="klabel">Abonado deuda</span></div><div id="kpi-abonado" class="tnum" style="font-size:22px; font-weight:700;">$0</div></div>
+                    <div class="kpi"><div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;"><span style="width:8px;height:8px;border-radius:50%;background:#a99bff;"></span><span class="klabel">Abonos deuda (mes)</span></div><div id="kpi-abonado" class="tnum" style="font-size:22px; font-weight:700;">$0</div></div>
                 </div>
             </div>
 
@@ -249,16 +258,37 @@
                 </div>
             </div>
 
-            <!-- ===== DEUDA ===== -->
+            <!-- ===== METAS ===== -->
             <div id="tab-deuda" data-panel class="hidden" style="display:flex; flex-direction:column; gap:20px;">
+
+                <div class="glass" style="padding:26px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; gap:12px; flex-wrap:wrap;">
+                        <div><h2 style="font-size:18px; font-weight:700; margin:0 0 4px;">Metas de compra</h2><p style="color:#9aa0b5; font-size:13px; margin:0;">Líneas de referencia en el gráfico: cuando tu saldo las cruza, te alcanza.</p></div>
+                        <button class="add-btn add-green" id="add-meta">+ Añadir meta</button>
+                    </div>
+                    <div class="head-grid g-meta"><span></span><span>Meta</span><span style="text-align:right;">Monto</span><span></span><span></span></div>
+                    <div id="metas-body"></div>
+                    <div id="metas-logradas-wrap" class="hidden" style="margin-top:24px;">
+                        <p class="mono" style="font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:#6b7089; margin:0 0 6px;">Logradas</p>
+                        <div id="metas-logradas"></div>
+                    </div>
+                    <div id="movs-wrap" class="hidden" style="margin-top:24px;">
+                        <p class="mono" style="font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:#6b7089; margin:0 0 6px;">Compras y otros movimientos del mes</p>
+                        <div class="head-grid g-mov" style="padding-top:6px;"><span>Fecha</span><span>Concepto</span><span style="text-align:right;">Monto</span><span></span></div>
+                        <div id="movs-body"></div>
+                    </div>
+                </div>
+
                 <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px;">
                     <div class="kpi"><div class="klabel" style="margin-bottom:10px;">Meta total</div><div id="d-meta" class="tnum" style="font-size:22px; font-weight:700;">$0</div></div>
                     <div class="kpi"><div class="klabel" style="margin-bottom:10px;">Abonado</div><div id="d-abonado" class="tnum" style="font-size:22px; font-weight:700; color:#a99bff;">$0</div></div>
                     <div class="kpi"><div class="klabel" style="margin-bottom:10px;">Restante</div><div id="d-restante" class="tnum" style="font-size:22px; font-weight:700; color:#ff9a86;">$0</div></div>
                     <div class="kpi"><div class="klabel" style="margin-bottom:10px;">Progreso</div><div id="d-pct" class="tnum" style="font-size:22px; font-weight:700; color:#a99bff;">0%</div></div>
                 </div>
+
                 <div class="glass" style="padding:26px;">
                     <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:16px; margin-bottom:20px; flex-wrap:wrap;">
+                        <div><h2 style="font-size:16px; font-weight:700; margin:0 0 4px;">Deuda universidad</h2><p style="color:#9aa0b5; font-size:13px; margin:0;">Tus abonos, de cualquier mes, suman al progreso total.</p></div>
                         <div><label class="klabel" style="display:block; margin-bottom:8px;">Meta total de la deuda</label><input class="fin-inp" type="number" id="meta-input" style="max-width:200px;" min="0"></div>
                     </div>
                     <div style="height:10px; border-radius:999px; background:rgba(255,255,255,0.06); overflow:hidden; margin-bottom:24px;">
@@ -273,7 +303,7 @@
                 </div>
             </div>
 
-            <!-- ===== BANCO (antesala cartola) ===== -->
+            <!-- ===== BANCO ===== -->
             <div id="tab-banco" data-panel class="hidden" style="display:flex; flex-direction:column; gap:20px;">
                 <div style="display:flex; align-items:flex-start; gap:14px; background:rgba(158,194,255,0.08); border:1px solid rgba(158,194,255,0.18); border-radius:18px; padding:18px 20px;">
                     <span style="font-size:18px;">🏦</span>
@@ -282,7 +312,7 @@
                 <div class="glass" style="padding:48px 26px; text-align:center;">
                     <div style="font-size:34px; margin-bottom:12px;">🚧</div>
                     <h2 style="font-size:17px; font-weight:700; margin:0 0 8px;">Próximamente</h2>
-                    <p style="color:#9aa0b5; font-size:13px; max-width:420px; margin:0 auto;">Aquí vas a poder importar tu cartola de Santander (Excel/CSV) y verla comparada con lo que registraste a mano. Es lo siguiente que construiremos.</p>
+                    <p style="color:#9aa0b5; font-size:13px; max-width:420px; margin:0 auto;">Aquí vas a poder importar tu cartola de Santander (Excel/CSV) y verla comparada con lo que registraste a mano.</p>
                 </div>
             </div>
 
@@ -298,22 +328,33 @@
         const SUPABASE_KEY = 'sb_publishable_LqwpwT8dfxv93ukvwy9BKQ_LWyHd5Ha';
         const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let appState = { egresos: [], ingresos: [], deuda: { meta: 1000000, abonos: [] } };
+        let appState = {
+            egresos: [], ingresos: [], movimientos: [],
+            deuda: { meta: 1000000, abonos: [] },
+            metas: [], metasLogradas: [],
+            inicial: { valor: 0, manual: false }
+        };
         let uid = null, metaId = null;
         let mes = new Date(); mes.setDate(1);
         let recargando = false, tabActual = 'resumen';
+        let evoChart = null, proyeccionOn = true;
+        let compraArmada = null;
 
-        const PALETA = ['#a99bff','#9ec2ff','#7ee0b8','#ffce8a','#ff9a86'];
+        const PALETA = ['#7ee0b8','#ffce8a','#ff9a86','#9ec2ff','#e0a7ff'];
+        const C_SALDO = '#a99bff', C_SUELDO = '#9ec2ff', C_PROPINA = '#ffce8a';
         const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
         const $ = (id) => document.getElementById(id);
         const clp = (n) => '$' + Math.round(Number(n)||0).toLocaleString('es-CL');
         const escAttr = (s) => String(s ?? '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
         const flash = () => { const f=$('flash'); f.classList.add('show'); setTimeout(()=>f.classList.remove('show'),1000); };
+        const pad2 = (n) => String(n).padStart(2,'0');
 
-        function rangoMes() { const y=mes.getFullYear(), m=mes.getMonth(), ud=new Date(y,m+1,0).getDate(), p=(n)=>String(n).padStart(2,'0'); return { primero:`${y}-${p(m+1)}-01`, ultimo:`${y}-${p(m+1)}-${p(ud)}`, ultimoDia:ud }; }
-        function fechaDeDia(dia){ const y=mes.getFullYear(), m=mes.getMonth(), d=Math.min(rangoMes().ultimoDia, Math.max(1, parseInt(dia)||1)); return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`; }
-        const diaDeFecha = (f) => f ? new Date(f+'T00:00').getDate() : 1;
+        function rangoDe(fechaMes) { const y=fechaMes.getFullYear(), m=fechaMes.getMonth(), ud=new Date(y,m+1,0).getDate(); return { primero:`${y}-${pad2(m+1)}-01`, ultimo:`${y}-${pad2(m+1)}-${pad2(ud)}`, ultimoDia:ud, key:`${y}-${pad2(m+1)}` }; }
+        const rangoMes = () => rangoDe(mes);
+        function fechaDeDia(dia){ const y=mes.getFullYear(), m=mes.getMonth(), d=Math.min(rangoMes().ultimoDia, Math.max(1, parseInt(dia)||1)); return `${y}-${pad2(m+1)}-${pad2(d)}`; }
+        const diaDeFecha = (f) => f ? parseInt(String(f).slice(8,10), 10) : 1;
         const clampDia = (v) => Math.min(31, Math.max(1, parseInt(v)||1));
+        function hoyISO(){ const d=new Date(); return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; }
 
         // ===== SESIÓN =====
         async function refreshSession(){ const { data:{session} } = await sb.auth.getSession(); if(session){ uid=session.user.id; showApp(); } else showLogin(); }
@@ -337,30 +378,86 @@
         }));
 
         // ===== MES =====
-        function actualizarLabelMes(){ const l=`${MESES[mes.getMonth()]} ${mes.getFullYear()}`; $('mes-label').textContent=l; $('ie-mes').textContent = MESES[mes.getMonth()].replace(/^./,c=>c.toUpperCase()); }
+        function actualizarLabelMes(){ $('mes-label').textContent=`${MESES[mes.getMonth()]} ${mes.getFullYear()}`; $('ie-mes').textContent = MESES[mes.getMonth()].replace(/^./,c=>c.toUpperCase()); }
         $('mes-prev').addEventListener('click', async ()=>{ mes.setMonth(mes.getMonth()-1); actualizarLabelMes(); await recargar(); });
         $('mes-next').addEventListener('click', async ()=>{ mes.setMonth(mes.getMonth()+1); actualizarLabelMes(); await recargar(); });
 
         // ===== CARGA =====
         async function recargar(){
             recargando = true;
-            const { primero, ultimo } = rangoMes();
-            const [egRes, ingRes, metaRes] = await Promise.all([
+            const r = rangoMes();
+            const [egRes, ingRes, metasRes, movRes] = await Promise.all([
                 sb.from('egresos_fijos').select('*').order('creado_en',{ascending:true}),
-                sb.from('ingresos_diarios').select('*').gte('fecha',primero).lte('fecha',ultimo).order('fecha',{ascending:true}),
-                sb.from('metas').select('*').eq('tipo','deuda').order('creado_en',{ascending:true}).limit(1)
+                sb.from('ingresos_diarios').select('*').gte('fecha',r.primero).lte('fecha',r.ultimo).order('fecha',{ascending:true}),
+                sb.from('metas').select('*').order('creado_en',{ascending:true}),
+                sb.from('movimientos').select('*').eq('origen','manual').gte('fecha',r.primero).lte('fecha',r.ultimo).order('fecha',{ascending:true})
             ]);
-            if(egRes.error||ingRes.error||metaRes.error){ console.error(egRes.error||ingRes.error||metaRes.error); recargando=false; return; }
-            let meta = (metaRes.data && metaRes.data[0]) || null;
-            if(!meta){ metaId=crypto.randomUUID(); await sb.from('metas').insert({id:metaId,user_id:uid,nombre:'Universidad',tipo:'deuda',monto_objetivo:1000000}); meta={id:metaId,monto_objetivo:1000000}; }
-            metaId = meta.id;
+            if(egRes.error||ingRes.error||metasRes.error){ console.error(egRes.error||ingRes.error||metasRes.error); recargando=false; return; }
+
+            let deudaMeta = (metasRes.data||[]).find(m=>m.tipo==='deuda') || null;
+            if(!deudaMeta){
+                metaId=crypto.randomUUID();
+                await sb.from('metas').insert({id:metaId,user_id:uid,nombre:'Universidad',tipo:'deuda',monto_objetivo:1000000});
+                deudaMeta={id:metaId,monto_objetivo:1000000};
+            }
+            metaId = deudaMeta.id;
+            const compras = (metasRes.data||[]).filter(m=>m.tipo==='compra');
+            appState.metas = compras.filter(m=>!m.cumplida_en).map(m=>({ id:m.id, nombre:m.nombre, monto:Number(m.monto_objetivo)||0 }));
+            appState.metasLogradas = compras.filter(m=>m.cumplida_en).map(m=>({ id:m.id, nombre:m.nombre, monto:Number(m.monto_objetivo)||0, fecha:m.cumplida_en }));
+
             const abRes = await sb.from('abonos').select('*').eq('meta_id',metaId).order('creado_en',{ascending:true});
-            appState.egresos = (egRes.data||[]).map(r=>({ id:r.id, nombre:r.nombre, monto:Number(r.monto)||0, diaPago:r.dia_pago }));
-            appState.ingresos = (ingRes.data||[]).map(r=>({ id:r.id, dia:diaDeFecha(r.fecha), propinas:Number(r.propinas)||0, turno:Number(r.turno)||0 }));
-            appState.deuda = { meta:Number(meta.monto_objetivo)||0, abonos:(abRes.data||[]).map(r=>({ id:r.id, nota:r.nota||'', monto:Number(r.monto)||0, diaPago:diaDeFecha(r.fecha) })) };
+            appState.egresos = (egRes.data||[]).map(x=>({ id:x.id, nombre:x.nombre, monto:Number(x.monto)||0, diaPago:x.dia_pago }));
+            appState.ingresos = (ingRes.data||[]).map(x=>({ id:x.id, dia:diaDeFecha(x.fecha), propinas:Number(x.propinas)||0, turno:Number(x.turno)||0 }));
+            appState.movimientos = (movRes.data||[]).map(x=>({ id:x.id, fecha:x.fecha, dia:diaDeFecha(x.fecha), nombre:x.comercio, monto:Number(x.monto)||0 }));
+            appState.deuda = {
+                meta: Number(deudaMeta.monto_objetivo)||0,
+                abonos: (abRes.data||[]).map(x=>({ id:x.id, nota:x.nota||'', monto:Number(x.monto)||0, fecha:x.fecha, diaPago:diaDeFecha(x.fecha) }))
+            };
+
+            await cargarSaldoInicial(r);
             renderAll();
             recargando = false;
         }
+
+        async function cargarSaldoInicial(r){
+            const res = await sb.from('saldos_mes').select('*').eq('mes', r.key).limit(1);
+            if(res.error){
+                $('mig-banner').classList.remove('hidden');
+                appState.inicial = { valor:0, manual:false };
+                return;
+            }
+            $('mig-banner').classList.add('hidden');
+            if(res.data && res.data[0]){
+                appState.inicial = { valor:Number(res.data[0].saldo_inicial)||0, manual:!!res.data[0].manual };
+                return;
+            }
+            const prevDate = new Date(mes); prevDate.setMonth(prevDate.getMonth()-1);
+            const rp = rangoDe(prevDate);
+            const prevRow = await sb.from('saldos_mes').select('*').eq('mes', rp.key).limit(1);
+            const inicialPrev = (prevRow.data && prevRow.data[0]) ? (Number(prevRow.data[0].saldo_inicial)||0) : 0;
+            const [ingP, movP] = await Promise.all([
+                sb.from('ingresos_diarios').select('turno,propinas').gte('fecha',rp.primero).lte('fecha',rp.ultimo),
+                sb.from('movimientos').select('monto').eq('origen','manual').gte('fecha',rp.primero).lte('fecha',rp.ultimo)
+            ]);
+            const abonosPrev = appState.deuda.abonos.filter(a=>a.fecha && String(a.fecha).slice(0,7)===rp.key);
+            const sumIngP = (ingP.data||[]).reduce((a,i)=>a+(Number(i.turno)||0)+(Number(i.propinas)||0),0);
+            const sumMovP = (movP.data||[]).reduce((a,m)=>a+(Number(m.monto)||0),0);
+            const sumAboP = abonosPrev.reduce((a,x)=>a+(Number(x.monto)||0),0);
+            const fijosP = appState.egresos.reduce((a,e)=>a+(Number(e.monto)||0),0);
+            const mesVacio = sumIngP===0 && sumMovP===0 && sumAboP===0;
+            const flujoPrev = mesVacio ? 0 : (sumIngP - fijosP - sumAboP + sumMovP);
+            const inicial = inicialPrev + flujoPrev;
+            appState.inicial = { valor: inicial, manual:false };
+            await sb.from('saldos_mes').upsert({ user_id:uid, mes:r.key, saldo_inicial:inicial, manual:false }, { onConflict:'user_id,mes', ignoreDuplicates:true });
+        }
+
+        $('saldo-inicial-input').addEventListener('change', async (e)=>{
+            const v = Number(e.target.value)||0;
+            appState.inicial = { valor:v, manual:true };
+            renderAll();
+            const { error } = await sb.from('saldos_mes').upsert({ user_id:uid, mes:rangoMes().key, saldo_inicial:v, manual:true }, { onConflict:'user_id,mes' });
+            error?console.error(error):flash();
+        });
 
         // ===== TIEMPO REAL =====
         let refT=null;
@@ -370,75 +467,235 @@
               .on('postgres_changes',{event:'*',schema:'public',table:'ingresos_diarios'}, soft)
               .on('postgres_changes',{event:'*',schema:'public',table:'abonos'}, soft)
               .on('postgres_changes',{event:'*',schema:'public',table:'metas'}, soft)
+              .on('postgres_changes',{event:'*',schema:'public',table:'movimientos'}, soft)
+              .on('postgres_changes',{event:'*',schema:'public',table:'saldos_mes'}, soft)
               .subscribe();
         }
         function soft(){ if(document.activeElement && ['INPUT','TEXTAREA'].includes(document.activeElement.tagName)) return; clearTimeout(refT); refT=setTimeout(()=>{ if(!recargando) recargar(); }, 350); }
 
-        // ===== CÁLCULO + RENDER =====
+        // ===== CÁLCULO =====
         function calcular(){
+            const mk = rangoMes().key;
+            const abonosMes = appState.deuda.abonos.filter(a=>a.fecha && String(a.fecha).slice(0,7)===mk);
             const totalSueldo = appState.ingresos.reduce((a,i)=>a+(Number(i.turno)||0),0);
             const totalPropinas = appState.ingresos.reduce((a,i)=>a+(Number(i.propinas)||0),0);
-            const bruto = totalSueldo+totalPropinas;
+            const movsIngreso = appState.movimientos.filter(m=>m.monto>0).reduce((a,m)=>a+m.monto,0);
+            const movsGasto = appState.movimientos.filter(m=>m.monto<0).reduce((a,m)=>a-m.monto,0);
+            const bruto = totalSueldo+totalPropinas+movsIngreso;
             const egresosFijos = appState.egresos.reduce((a,e)=>a+(Number(e.monto)||0),0);
-            const abonado = appState.deuda.abonos.reduce((a,x)=>a+(Number(x.monto)||0),0);
-            const egresosTot = egresosFijos+abonado;
-            const saldoNeto = bruto-egresosTot;
+            const abonadoMes = abonosMes.reduce((a,x)=>a+(Number(x.monto)||0),0);
+            const abonadoTotal = appState.deuda.abonos.reduce((a,x)=>a+(Number(x.monto)||0),0);
+            const egresosTot = egresosFijos+abonadoMes+movsGasto;
+            const flujo = bruto-egresosTot;
+            const inicial = Number(appState.inicial.valor)||0;
+            const disponible = inicial+flujo;
             const meta = Number(appState.deuda.meta)||0;
-            const restante = Math.max(0, meta-abonado);
-            const pctDeuda = meta>0 ? Math.min(100,(abonado/meta)*100) : 0;
-            return { totalSueldo, totalPropinas, bruto, egresosFijos, abonado, egresosTot, saldoNeto, meta, restante, pctDeuda };
+            const restante = Math.max(0, meta-abonadoTotal);
+            const pctDeuda = meta>0 ? Math.min(100,(abonadoTotal/meta)*100) : 0;
+            return { abonosMes, totalSueldo, totalPropinas, bruto, egresosFijos, abonadoMes, abonadoTotal, egresosTot, flujo, inicial, disponible, meta, restante, pctDeuda };
         }
 
-        function renderAll(){ const c=calcular(); renderResumen(c); renderIngresos(); renderEgresos(); renderDeuda(c); }
+        function renderAll(){ const c=calcular(); renderResumen(c); renderIngresos(); renderEgresos(); renderMetas(); renderDeuda(c); renderEvo(c); }
 
         function renderResumen(c){
-            $('hero-saldo').textContent = clp(c.saldoNeto);
-            $('hero-sub').textContent = `Con ${clp(c.bruto)} de ingresos y ${clp(c.egresosTot)} en gastos y abonos este mes.`;
-            const chip=$('saldo-chip'), pos=c.saldoNeto>=0;
+            $('hero-saldo').textContent = clp(c.disponible);
+            const mesNom = MESES[mes.getMonth()];
+            $('hero-sub').textContent = `Partiste ${mesNom} con ${clp(c.inicial)} · ${clp(c.bruto)} de ingresos · ${clp(c.egresosTot)} en gastos y abonos.`;
+            const chip=$('saldo-chip'), pos=c.disponible>=0;
             chip.textContent = pos ? '▲ En positivo' : '▼ En negativo';
             chip.style.background = pos ? 'rgba(126,224,184,0.14)' : 'rgba(255,154,134,0.14)';
             chip.style.border = pos ? '1px solid rgba(126,224,184,0.3)' : '1px solid rgba(255,154,134,0.3)';
             chip.style.color = pos ? '#7ee0b8' : '#ff9a86';
+            if(document.activeElement !== $('saldo-inicial-input')) $('saldo-inicial-input').value = Math.round(c.inicial);
+            $('saldo-inicial-note').textContent = appState.inicial.manual ? 'fijado a mano' : 'auto · arrastre del mes anterior';
             const maxIE = Math.max(c.bruto, c.egresosTot, 1);
             $('ie-ingresos').textContent = clp(c.bruto);
             $('ie-egresos').textContent = clp(c.egresosTot);
             $('bar-ingreso').style.width = (c.bruto/maxIE*100).toFixed(1)+'%';
             $('bar-egreso').style.width = (c.egresosTot/maxIE*100).toFixed(1)+'%';
-            const dif=$('ie-dif'); dif.textContent=clp(c.saldoNeto); dif.style.color = c.saldoNeto>=0?'#7ee0b8':'#ff9a86';
-            // donut
+            const dif=$('ie-dif'); dif.textContent=clp(c.flujo); dif.style.color = c.flujo>=0?'#7ee0b8':'#ff9a86';
             const circ = 2*Math.PI*54;
             $('donut-arc').setAttribute('stroke-dasharray', `${(c.pctDeuda/100*circ).toFixed(1)} ${circ.toFixed(1)}`);
             $('donut-pct').textContent = Math.round(c.pctDeuda)+'%';
-            $('r-abonado').textContent = clp(c.abonado);
+            $('r-abonado').textContent = clp(c.abonadoTotal);
             $('r-restante').textContent = clp(c.restante);
             $('r-meta').textContent = clp(c.meta);
-            // KPIs
             $('kpi-sueldo').textContent = clp(c.totalSueldo);
             $('kpi-propinas').textContent = clp(c.totalPropinas);
             $('kpi-egresos').textContent = clp(c.egresosFijos);
-            $('kpi-abonado').textContent = clp(c.abonado);
-            // evolución
-            renderEvolucion();
+            $('kpi-abonado').textContent = clp(c.abonadoMes);
         }
 
-        function renderEvolucion(){
-            const W=680, H=190;
-            const egDia={}, inDia={};
-            for(let i=1;i<=31;i++){ egDia[i]=0; inDia[i]=0; }
-            appState.egresos.forEach(e=>{ if(e.diaPago>=1&&e.diaPago<=31) egDia[e.diaPago]+=(Number(e.monto)||0); });
-            appState.deuda.abonos.forEach(a=>{ if(a.diaPago>=1&&a.diaPago<=31) egDia[a.diaPago]+=(Number(a.monto)||0); });
-            appState.ingresos.forEach(i=>{ if(i.dia>=1&&i.dia<=31) inDia[i.dia]+=((Number(i.turno)||0)+(Number(i.propinas)||0)); });
-            let saldo=0; const serie=[];
-            for(let d=1;d<=31;d++){ saldo += inDia[d]-egDia[d]; serie.push({dia:d,y:saldo}); }
-            const vals = serie.map(p=>p.y).concat([0]);
-            const minY=Math.min(...vals), maxY=Math.max(...vals), span=(maxY-minY)||1;
-            const px=(d)=>((d-1)/30)*W, py=(v)=>H-((v-minY)/span)*H;
-            const line = serie.map(p=>`${px(p.dia).toFixed(1)},${py(p.y).toFixed(1)}`).join(' ');
-            $('evo-line').setAttribute('points', line);
-            $('evo-area').setAttribute('d', `M ${px(1).toFixed(1)},${H} L ${serie.map(p=>`${px(p.dia).toFixed(1)},${py(p.y).toFixed(1)}`).join(' L ')} L ${px(31).toFixed(1)},${H} Z`);
-            const yz=py(0).toFixed(1); $('evo-zero').setAttribute('y1',yz); $('evo-zero').setAttribute('y2',yz);
+        // ===== GRÁFICO DE EVOLUCIÓN =====
+        function construirSeries(c){
+            const ud = rangoMes().ultimoDia;
+            const sueldoDia={}, propinaDia={}, extraDia={};
+            for(let i=1;i<=ud;i++){ sueldoDia[i]=0; propinaDia[i]=0; extraDia[i]=0; }
+            appState.ingresos.forEach(i=>{ if(i.dia>=1&&i.dia<=ud){ sueldoDia[i.dia]+=(Number(i.turno)||0); propinaDia[i.dia]+=(Number(i.propinas)||0); }});
+            appState.movimientos.filter(m=>m.monto>0).forEach(m=>{ if(m.dia>=1&&m.dia<=ud) extraDia[m.dia]+=m.monto; });
+
+            const egresosDia={}; for(let i=1;i<=ud;i++) egresosDia[i]=[];
+            appState.egresos.forEach(e=>{ const m=Number(e.monto)||0; const d=Math.min(e.diaPago,ud); if(m>0&&d>=1) egresosDia[d].push({nombre:e.nombre, monto:m}); });
+            c.abonosMes.forEach(a=>{ const m=Number(a.monto)||0; const d=Math.min(a.diaPago,ud); if(m>0&&d>=1) egresosDia[d].push({nombre:a.nota?`Abono universidad (${a.nota})`:'Abono universidad', monto:m}); });
+            appState.movimientos.filter(m=>m.monto<0).forEach(m=>{ const d=Math.min(m.dia,ud); if(d>=1) egresosDia[d].push({nombre:m.nombre||'Compra', monto:-m.monto}); });
+
+            let saldo=c.inicial, acumS=0, acumP=0;
+            const netoPts=[{x:0,y:saldo}], sueldoPts=[{x:0,y:0}], propinaPts=[{x:0,y:0}];
+            for(let dia=1;dia<=ud;dia++){
+                const iS=sueldoDia[dia], iP=propinaDia[dia], iX=extraDia[dia], iT=iS+iP+iX;
+                if(iT>0){ saldo+=iT; acumS+=iS; acumP+=iP; netoPts.push({x:dia,y:saldo}); }
+                const eh=egresosDia[dia];
+                if(eh.length>0){
+                    if(iT<=0) netoPts.push({x:dia,y:saldo});
+                    eh.forEach(e=>{ saldo-=e.monto; netoPts.push({x:dia,y:saldo,egreso:e.nombre+' −'+clp(e.monto)}); });
+                } else if(iT<=0 && netoPts[netoPts.length-1].x!==dia){
+                    netoPts.push({x:dia,y:saldo});
+                }
+                if(iS>0||sueldoPts[sueldoPts.length-1].x!==dia) sueldoPts.push({x:dia,y:acumS});
+                if(iP>0||propinaPts[propinaPts.length-1].x!==dia) propinaPts.push({x:dia,y:acumP});
+            }
+            if(netoPts[netoPts.length-1].x!==ud) netoPts.push({x:ud,y:saldo});
+
+            // Proyección
+            let proy=null;
+            const diasConDatos = appState.ingresos.map(i=>i.dia).filter(d=>d>=1&&d<=ud);
+            if(proyeccionOn && diasConDatos.length>0){
+                const hoy=Math.max(...diasConDatos);
+                if(ud-hoy>0){
+                    const pp=[], sp=[];
+                    for(let d=1;d<=hoy;d++){ if(propinaDia[d]>0) pp.push(propinaDia[d]); if(sueldoDia[d]>0) sp.push(sueldoDia[d]); }
+                    const promP = pp.length? pp.reduce((a,b)=>a+b,0)/pp.length : 0;
+                    const promS = promedioRecortado(sp);
+                    const saldoHoy = valorEn(netoPts, hoy);
+                    let sProj=saldoHoy;
+                    const projPts=[{x:hoy,y:sProj}];
+                    for(let dia=hoy+1;dia<=ud;dia++){
+                        sProj+=promS+promP;
+                        const eh=egresosDia[dia];
+                        if(eh.length>0){ projPts.push({x:dia,y:sProj}); eh.forEach(e=>{ sProj-=e.monto; projPts.push({x:dia,y:sProj}); }); }
+                        else projPts.push({x:dia,y:sProj});
+                    }
+                    proy={ hoy, diasRestantes:ud-hoy, promS, promP, saldoFinal:sProj, pts:projPts };
+                }
+            }
+            return { netoPts, sueldoPts, propinaPts, proy, ud, saldoFinalReal:saldo };
+        }
+        function valorEn(pts, x){ let v=pts[0].y; for(const p of pts){ if(p.x<=x) v=p.y; else break; } return v; }
+        function promedioRecortado(v){ if(v.length===0) return 0; if(v.length<4) return v.reduce((a,b)=>a+b,0)/v.length; const o=[...v].sort((a,b)=>a-b).slice(1,-1); return o.reduce((a,b)=>a+b,0)/o.length; }
+
+        function cruceDeMeta(monto, netoPts, proyPts){
+            // Cruce SOSTENIDO: el día en que alcanzas la meta y ya no vuelves a caer
+            // bajo ella en el resto del mes (considerando egresos futuros y proyección).
+            const pts = proyPts ? netoPts.concat(proyPts.slice(1)) : netoPts;
+            if(!pts.length) return null;
+            let lastBelow = -1;
+            for(let i=0;i<pts.length;i++){ if(pts[i].y < monto) lastBelow = i; }
+            if(lastBelow === -1) return { dia:0, ya:true };
+            if(lastBelow === pts.length-1) return null;
+            const p = pts[lastBelow+1];
+            return { dia:p.x, proy: lastBelow+1 >= netoPts.length };
         }
 
+        const metaLinesPlugin = {
+            id: 'metaLines',
+            afterDraw(chart){
+                const d = chart.$metaData; if(!d || !d.metas.length) return;
+                const { ctx, chartArea, scales } = chart;
+                ctx.save();
+                d.metas.forEach((m,i)=>{
+                    const y = scales.y.getPixelForValue(m.monto);
+                    if(y<chartArea.top-1 || y>chartArea.bottom+1) return;
+                    const color = PALETA[i%PALETA.length];
+                    ctx.strokeStyle=color; ctx.lineWidth=1.2; ctx.setLineDash([5,5]); ctx.globalAlpha=0.85;
+                    ctx.beginPath(); ctx.moveTo(chartArea.left,y); ctx.lineTo(chartArea.right,y); ctx.stroke();
+                    ctx.setLineDash([]);
+                    let tag = `${m.nombre} ${clp(m.monto)}`;
+                    if(m.cruce){ tag += m.cruce.ya ? ' · ya te alcanza' : ` · ≈ día ${m.cruce.dia}`; }
+                    ctx.font='10px "JetBrains Mono", monospace';
+                    ctx.fillStyle=color; ctx.textAlign='right'; ctx.textBaseline='bottom'; ctx.globalAlpha=1;
+                    ctx.fillText(tag, chartArea.right-4, y-4);
+                    if(m.cruce && !m.cruce.ya){
+                        const cx = scales.x.getPixelForValue(m.cruce.dia);
+                        if(cx>=chartArea.left && cx<=chartArea.right){
+                            ctx.beginPath(); ctx.arc(cx,y,4,0,Math.PI*2); ctx.fillStyle=color; ctx.fill();
+                            ctx.beginPath(); ctx.arc(cx,y,4,0,Math.PI*2); ctx.strokeStyle='#08090f'; ctx.lineWidth=1.5; ctx.stroke();
+                        }
+                    }
+                });
+                ctx.restore();
+            }
+        };
+
+        function renderEvo(c){
+            const s = construirSeries(c);
+            const mono = "'JetBrains Mono', monospace";
+
+            const metasInfo = appState.metas.filter(m=>m.monto>0).map(m=>({
+                ...m, cruce: cruceDeMeta(m.monto, s.netoPts, s.proy?s.proy.pts:null)
+            }));
+            appState.metas.forEach(m=>{ const mi=metasInfo.find(x=>x.id===m.id); m._cruce = mi?mi.cruce:null; });
+
+            if(s.proy){
+                $('proy-info').textContent = `Proyección: quedan ${s.proy.diasRestantes} días · ~${clp(s.proy.promS+s.proy.promP)}/día trabajado · cierras el mes en ${clp(s.proy.saldoFinal)}`;
+            } else {
+                $('proy-info').textContent = proyeccionOn ? 'Proyección: aún no hay ingresos este mes para proyectar.' : '';
+            }
+
+            const datasets = [
+                { label:'Saldo disponible', data:s.netoPts, borderColor:C_SALDO, backgroundColor:'rgba(169,155,255,0.08)', borderWidth:2.5, fill:true, tension:0.12, pointRadius:0, pointHoverRadius:5, pointBackgroundColor:'#08090f', pointBorderColor:C_SALDO, order:1 },
+                { label:'Sueldo acumulado', data:s.sueldoPts, borderColor:C_SUELDO, backgroundColor:'transparent', borderWidth:1.2, fill:false, tension:0.12, pointRadius:0, pointHoverRadius:4, order:3 },
+                { label:'Propinas acumuladas', data:s.propinaPts, borderColor:C_PROPINA, backgroundColor:'transparent', borderWidth:1.2, fill:false, tension:0.12, pointRadius:0, pointHoverRadius:4, order:2 }
+            ];
+            if(s.proy){
+                datasets.push({ label:'Saldo proyectado', data:s.proy.pts, borderColor:C_SALDO, backgroundColor:'transparent', borderWidth:1.5, borderDash:[5,5], fill:false, tension:0.12, pointRadius:0, pointHoverRadius:4, order:1 });
+            }
+
+            const allY = [...s.netoPts.map(p=>p.y), ...(s.proy?s.proy.pts.map(p=>p.y):[]), ...metasInfo.map(m=>m.monto), 0];
+            const yMax = Math.max(...allY), yMin = Math.min(...allY);
+            const margen = Math.max((yMax-yMin)*0.08, 1000);
+
+            if(evoChart) evoChart.destroy();
+            evoChart = new Chart($('evoChart').getContext('2d'), {
+                type:'scatter',
+                data:{ datasets },
+                options:{
+                    responsive:true, maintainAspectRatio:false, showLine:true,
+                    interaction:{ mode:'nearest', intersect:false },
+                    scales:{
+                        x:{ type:'linear', min:0, max:s.ud,
+                            ticks:{ stepSize:1, maxTicksLimit:9, font:{family:mono,size:10}, color:'#6b7089' },
+                            grid:{ color:'rgba(255,255,255,0.05)', drawTicks:false },
+                            title:{ display:true, text:'Día del mes', font:{family:mono,size:10}, color:'#6b7089' } },
+                        y:{ suggestedMax:yMax+margen, suggestedMin:Math.min(0,yMin)-(yMin<0?margen:0),
+                            ticks:{ font:{family:mono,size:10}, color:'#6b7089', callback:v=>'$'+Number(v).toLocaleString('es-CL') },
+                            grid:{ color:'rgba(255,255,255,0.05)', drawTicks:false } }
+                    },
+                    plugins:{
+                        legend:{ position:'bottom', labels:{ font:{family:mono,size:10}, color:'#9aa0b5', boxWidth:10, boxHeight:10, usePointStyle:true, pointStyle:'circle' } },
+                        tooltip:{
+                            backgroundColor:'#161824', borderColor:'rgba(255,255,255,0.1)', borderWidth:1,
+                            titleFont:{family:mono,size:11}, bodyFont:{family:mono,size:11}, padding:10,
+                            callbacks:{
+                                title:(items)=> items[0].parsed.x===0 ? 'Inicio de mes' : 'Día '+items[0].parsed.x,
+                                label:(ctx)=> ctx.dataset.label+': '+clp(ctx.parsed.y),
+                                afterLabel:(ctx)=> ctx.raw && ctx.raw.egreso ? ctx.raw.egreso : ''
+                            }
+                        }
+                    }
+                },
+                plugins:[metaLinesPlugin]
+            });
+            evoChart.$metaData = { metas: metasInfo };
+            renderMetas();
+        }
+
+        $('btn-proyeccion').addEventListener('click', ()=>{
+            proyeccionOn = !proyeccionOn;
+            $('btn-proyeccion').textContent = proyeccionOn ? 'Quitar proyección' : 'Proyectar mes';
+            renderAll();
+        });
+
+        // ===== LISTAS =====
         function renderIngresos(){
             const body=$('ingresos-body'); body.innerHTML='';
             const orden=[...appState.ingresos].sort((a,b)=>a.dia-b.dia);
@@ -473,9 +730,57 @@
             $('egresos-total').textContent = clp(appState.egresos.reduce((a,e)=>a+(Number(e.monto)||0),0));
         }
 
+        function renderMetas(){
+            const body=$('metas-body'); body.innerHTML='';
+            appState.metas.forEach((m,i)=>{
+                const color = PALETA[i%PALETA.length];
+                const row=document.createElement('div'); row.className='row-grid g-meta';
+                const armada = compraArmada===m.id;
+                let cruceTxt = '';
+                if(m.monto>0 && m._cruce){ cruceTxt = m._cruce.ya ? 'ya te alcanza ✓' : `la alcanzas ≈ día ${m._cruce.dia}`; }
+                else if(m.monto>0){ cruceTxt = 'fuera de alcance este mes'; }
+                row.innerHTML = `
+                    <span style="width:10px; height:10px; border-radius:50%; background:${color};"></span>
+                    <div>
+                        <input class="fin-inp" type="text" value="${escAttr(m.nombre)}" onchange="actualizarMetaCompra('${m.id}','nombre',this.value)" placeholder="Ej: TV nueva" style="background:transparent; border-color:transparent;">
+                        <div class="mono" style="font-size:10px; color:${m._cruce&&m._cruce.ya?'#7ee0b8':'#6b7089'}; padding-left:10px;">${cruceTxt}</div>
+                    </div>
+                    <input class="fin-inp" type="number" min="0" value="${m.monto}" onchange="actualizarMetaCompra('${m.id}','monto',parseFloat(this.value)||0)" style="text-align:right;">
+                    <button class="btn-mini ${armada?'confirm':''}" onclick="comprarMeta('${m.id}')">${armada?'¿Confirmar compra?':'La compré'}</button>
+                    <button class="remove-x" onclick="eliminarMetaCompra('${m.id}')" title="Eliminar">&times;</button>`;
+                body.appendChild(row);
+            });
+            if(!appState.metas.length) body.innerHTML = '<p style="color:#6b7089; font-size:13px; padding:16px 6px;">Sin metas activas. Toca “+ Añadir meta” — aparecerá como línea punteada en el gráfico.</p>';
+
+            const lw=$('metas-logradas-wrap'), lb=$('metas-logradas');
+            if(appState.metasLogradas.length){
+                lw.classList.remove('hidden');
+                lb.innerHTML = appState.metasLogradas.map(m=>`
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 6px; border-bottom:1px solid rgba(255,255,255,0.05);">
+                        <span style="font-size:13px; color:#9aa0b5;">🏆 ${escAttr(m.nombre)}</span>
+                        <span class="mono" style="font-size:12px; color:#7ee0b8;">${clp(m.monto)} · ${escAttr(m.fecha)}</span>
+                    </div>`).join('');
+            } else lw.classList.add('hidden');
+
+            const mw=$('movs-wrap'), mb=$('movs-body');
+            if(appState.movimientos.length){
+                mw.classList.remove('hidden');
+                mb.innerHTML='';
+                appState.movimientos.forEach(mv=>{
+                    const row=document.createElement('div'); row.className='row-grid g-mov';
+                    row.innerHTML = `
+                        <span class="mono" style="font-size:12px; color:#6b7089;">día ${mv.dia}</span>
+                        <span style="font-size:13px;">${escAttr(mv.nombre)}</span>
+                        <span class="mono tnum" style="text-align:right; font-size:13px; font-weight:600; color:${mv.monto<0?'#ff9a86':'#7ee0b8'};">${clp(mv.monto)}</span>
+                        <button class="remove-x" onclick="eliminarMovimiento('${mv.id}')" title="Eliminar">&times;</button>`;
+                    mb.appendChild(row);
+                });
+            } else mw.classList.add('hidden');
+        }
+
         function renderDeuda(c){
             $('d-meta').textContent = clp(c.meta);
-            $('d-abonado').textContent = clp(c.abonado);
+            $('d-abonado').textContent = clp(c.abonadoTotal);
             $('d-restante').textContent = clp(c.restante);
             $('d-pct').textContent = Math.round(c.pctDeuda)+'%';
             $('d-progress').style.width = c.pctDeuda.toFixed(1)+'%';
@@ -498,22 +803,42 @@
         async function actualizarEgreso(id,campo,valor){ const e=appState.egresos.find(x=>x.id===id); if(!e)return; e[campo]=valor; renderAll(); const col=campo==='diaPago'?'dia_pago':campo; const {error}=await sb.from('egresos_fijos').update({[col]:valor}).eq('id',id); error?console.error(error):flash(); }
         async function eliminarEgreso(id){ appState.egresos=appState.egresos.filter(x=>x.id!==id); renderAll(); await sb.from('egresos_fijos').delete().eq('id',id); flash(); }
 
-        async function agregarIngreso(){ const ult=appState.ingresos.length?Math.min(31,Math.max(...appState.ingresos.map(i=>i.dia))+1):1; const i={id:crypto.randomUUID(),dia:ult,turno:0,propinas:0}; appState.ingresos.push(i); renderAll(); const {error}=await sb.from('ingresos_diarios').insert({id:i.id,user_id:uid,fecha:fechaDeDia(i.dia),turno:i.turno,propinas:i.propinas}); error?console.error(error):flash(); }
+        async function agregarIngreso(){ const ult=appState.ingresos.length?Math.min(rangoMes().ultimoDia,Math.max(...appState.ingresos.map(i=>i.dia))+1):1; const i={id:crypto.randomUUID(),dia:ult,turno:0,propinas:0}; appState.ingresos.push(i); renderAll(); const {error}=await sb.from('ingresos_diarios').insert({id:i.id,user_id:uid,fecha:fechaDeDia(i.dia),turno:i.turno,propinas:i.propinas}); error?console.error(error):flash(); }
         async function actualizarIngreso(id,campo,valor){ const i=appState.ingresos.find(x=>x.id===id); if(!i)return; i[campo]=valor; renderAll(); const patch=campo==='dia'?{fecha:fechaDeDia(valor)}:{[campo]:valor}; const {error}=await sb.from('ingresos_diarios').update(patch).eq('id',id); error?console.error(error):flash(); }
         async function eliminarIngreso(id){ appState.ingresos=appState.ingresos.filter(x=>x.id!==id); renderAll(); await sb.from('ingresos_diarios').delete().eq('id',id); flash(); }
 
-        async function agregarAbono(){ const a={id:crypto.randomUUID(),nota:'',monto:0,diaPago:1}; appState.deuda.abonos.push(a); renderAll(); const {error}=await sb.from('abonos').insert({id:a.id,user_id:uid,meta_id:metaId,nota:a.nota,monto:a.monto,fecha:fechaDeDia(a.diaPago)}); error?console.error(error):flash(); }
-        async function actualizarAbono(id,campo,valor){ const a=appState.deuda.abonos.find(x=>x.id===id); if(!a)return; a[campo]=valor; renderAll(); const patch=campo==='diaPago'?{fecha:fechaDeDia(valor)}:{[campo]:valor}; const {error}=await sb.from('abonos').update(patch).eq('id',id); error?console.error(error):flash(); }
+        async function agregarAbono(){ const a={id:crypto.randomUUID(),nota:'',monto:0,diaPago:1,fecha:fechaDeDia(1)}; appState.deuda.abonos.push(a); renderAll(); const {error}=await sb.from('abonos').insert({id:a.id,user_id:uid,meta_id:metaId,nota:a.nota,monto:a.monto,fecha:a.fecha}); error?console.error(error):flash(); }
+        async function actualizarAbono(id,campo,valor){ const a=appState.deuda.abonos.find(x=>x.id===id); if(!a)return; a[campo]=valor; if(campo==='diaPago') a.fecha=fechaDeDia(valor); renderAll(); const patch=campo==='diaPago'?{fecha:fechaDeDia(valor)}:{[campo]:valor}; const {error}=await sb.from('abonos').update(patch).eq('id',id); error?console.error(error):flash(); }
         async function eliminarAbono(id){ appState.deuda.abonos=appState.deuda.abonos.filter(x=>x.id!==id); renderAll(); await sb.from('abonos').delete().eq('id',id); flash(); }
 
         async function actualizarMeta(valor){ appState.deuda.meta=valor; renderAll(); const {error}=await sb.from('metas').update({monto_objetivo:valor}).eq('id',metaId); error?console.error(error):flash(); }
 
+        async function agregarMetaCompra(){ const m={id:crypto.randomUUID(),nombre:'Nueva meta',monto:0}; appState.metas.push(m); renderAll(); const {error}=await sb.from('metas').insert({id:m.id,user_id:uid,nombre:m.nombre,tipo:'compra',monto_objetivo:m.monto}); error?console.error(error):flash(); }
+        async function actualizarMetaCompra(id,campo,valor){ const m=appState.metas.find(x=>x.id===id); if(!m)return; m[campo]=valor; renderAll(); const col=campo==='monto'?'monto_objetivo':campo; const {error}=await sb.from('metas').update({[col]:valor}).eq('id',id); error?console.error(error):flash(); }
+        async function eliminarMetaCompra(id){ appState.metas=appState.metas.filter(x=>x.id!==id); if(compraArmada===id) compraArmada=null; renderAll(); await sb.from('metas').delete().eq('id',id); flash(); }
+
+        async function comprarMeta(id){
+            const m=appState.metas.find(x=>x.id===id); if(!m) return;
+            if(compraArmada!==id){ compraArmada=id; renderMetas(); setTimeout(()=>{ if(compraArmada===id){ compraArmada=null; renderMetas(); } }, 4000); return; }
+            compraArmada=null;
+            const fecha=hoyISO();
+            const insMov = await sb.from('movimientos').insert({ user_id:uid, fecha, comercio:m.nombre, descripcion_cruda:'Compra de meta: '+m.nombre, monto:-Math.abs(m.monto), tipo:'gasto', origen:'manual' });
+            const updMeta = await sb.from('metas').update({ cumplida_en:fecha }).eq('id',id);
+            if(insMov.error||updMeta.error){ console.error(insMov.error||updMeta.error); $('mig-banner').classList.remove('hidden'); return; }
+            flash();
+            await recargar();
+        }
+
+        async function eliminarMovimiento(id){ appState.movimientos=appState.movimientos.filter(x=>x.id!==id); renderAll(); await sb.from('movimientos').delete().eq('id',id); flash(); }
+
         $('add-egreso').addEventListener('click', agregarEgreso);
         $('add-ingreso').addEventListener('click', agregarIngreso);
         $('add-abono').addEventListener('click', agregarAbono);
+        $('add-meta').addEventListener('click', agregarMetaCompra);
         $('meta-input').addEventListener('change', (e)=> actualizarMeta(parseFloat(e.target.value)||0));
 
-        Object.assign(window, { actualizarEgreso, eliminarEgreso, actualizarIngreso, eliminarIngreso, actualizarAbono, eliminarAbono, clampDia });
+        Object.assign(window, { actualizarEgreso, eliminarEgreso, actualizarIngreso, eliminarIngreso, actualizarAbono, eliminarAbono, actualizarMetaCompra, eliminarMetaCompra, comprarMeta, eliminarMovimiento, clampDia });
+        window.__fin = { get state(){ return appState; }, set state(s){ appState=s; }, renderAll };
 
         if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
         refreshSession();
