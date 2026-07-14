@@ -76,7 +76,11 @@
         .row-grid { display:grid; align-items:center; gap:14px; padding:11px 6px; border-bottom:1px solid rgba(255,255,255,0.05); }
         .head-grid { display:grid; gap:14px; font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:#6b7089; padding:18px 6px 12px; border-bottom:1px solid rgba(255,255,255,0.08); }
         .g-ing { grid-template-columns:72px 1fr 1fr 88px 24px; }
-        .g-egr { grid-template-columns:16px 1fr 1fr 72px 24px; }
+        .g-egr { grid-template-columns:16px 1fr 1fr 52px 62px 24px; }
+        .mes-toggle { font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.04em; text-transform:uppercase; border-radius:8px; padding:5px 4px; cursor:pointer; text-align:center; transition:filter .2s; }
+        .mes-toggle:hover { filter:brightness(1.2); }
+        .mes-este { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); color:#9aa0b5; }
+        .mes-sig { background:rgba(158,194,255,0.14); border:1px solid rgba(158,194,255,0.35); color:#9ec2ff; }
         .g-abo { grid-template-columns:1fr 84px 64px 24px; }
         .g-meta { grid-template-columns:16px 1fr 110px auto 24px; }
         .g-mov { grid-template-columns:72px 1fr 110px 24px; }
@@ -250,7 +254,7 @@
                     <div><h2 style="font-size:18px; font-weight:700; margin:0 0 4px;">Egresos fijos</h2><p style="color:#9aa0b5; font-size:13px; margin:0;">Gastos recurrentes con su día de pago.</p></div>
                     <button class="add-btn add-red" id="add-egreso">+ Añadir egreso</button>
                 </div>
-                <div class="head-grid g-egr"><span></span><span>Nombre</span><span style="text-align:right;">Monto</span><span style="text-align:right;">Día</span><span></span></div>
+                <div class="head-grid g-egr"><span></span><span>Nombre</span><span style="text-align:right;">Monto</span><span style="text-align:right;">Día</span><span style="text-align:center;">Mes</span><span></span></div>
                 <div id="egresos-body"></div>
                 <div style="display:flex; justify-content:space-between; align-items:baseline; margin-top:20px; padding-top:16px;">
                     <span class="mono" style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:#9aa0b5;">Total egresos fijos</span>
@@ -406,7 +410,7 @@
             appState.metasLogradas = compras.filter(m=>m.cumplida_en).map(m=>({ id:m.id, nombre:m.nombre, monto:Number(m.monto_objetivo)||0, fecha:m.cumplida_en }));
 
             const abRes = await sb.from('abonos').select('*').eq('meta_id',metaId).order('creado_en',{ascending:true});
-            appState.egresos = (egRes.data||[]).map(x=>({ id:x.id, nombre:x.nombre, monto:Number(x.monto)||0, diaPago:x.dia_pago }));
+            appState.egresos = (egRes.data||[]).map(x=>({ id:x.id, nombre:x.nombre, monto:Number(x.monto)||0, diaPago:x.dia_pago, mesSig:!!x.mes_siguiente }));
             appState.ingresos = (ingRes.data||[]).map(x=>({ id:x.id, dia:diaDeFecha(x.fecha), propinas:Number(x.propinas)||0, turno:Number(x.turno)||0 }));
             appState.movimientos = (movRes.data||[]).map(x=>({ id:x.id, fecha:x.fecha, dia:diaDeFecha(x.fecha), nombre:x.comercio, monto:Number(x.monto)||0 }));
             appState.deuda = {
@@ -529,20 +533,29 @@
         // ===== GRÁFICO DE EVOLUCIÓN =====
         function construirSeries(c){
             const ud = rangoMes().ultimoDia;
+            // Extensión: días 1..ext del mes siguiente (siempre al menos hasta el 5).
+            const diasSig = appState.egresos.filter(e=>e.mesSig && (Number(e.monto)||0)>0).map(e=>clampDia(e.diaPago));
+            const ext = Math.max(5, diasSig.length ? Math.max(...diasSig) : 0);
+            const finX = ud + ext; // última posición del eje
+
             const sueldoDia={}, propinaDia={}, extraDia={};
             for(let i=1;i<=ud;i++){ sueldoDia[i]=0; propinaDia[i]=0; extraDia[i]=0; }
             appState.ingresos.forEach(i=>{ if(i.dia>=1&&i.dia<=ud){ sueldoDia[i.dia]+=(Number(i.turno)||0); propinaDia[i.dia]+=(Number(i.propinas)||0); }});
             appState.movimientos.filter(m=>m.monto>0).forEach(m=>{ if(m.dia>=1&&m.dia<=ud) extraDia[m.dia]+=m.monto; });
 
-            const egresosDia={}; for(let i=1;i<=ud;i++) egresosDia[i]=[];
-            appState.egresos.forEach(e=>{ const m=Number(e.monto)||0; const d=Math.min(e.diaPago,ud); if(m>0&&d>=1) egresosDia[d].push({nombre:e.nombre, monto:m}); });
+            const egresosDia={}; for(let i=1;i<=finX;i++) egresosDia[i]=[];
+            appState.egresos.forEach(e=>{
+                const m=Number(e.monto)||0; if(m<=0) return;
+                const pos = e.mesSig ? (ud + Math.min(clampDia(e.diaPago), ext)) : Math.min(clampDia(e.diaPago), ud);
+                egresosDia[pos].push({ nombre: e.nombre + (e.mesSig?' (mes sig.)':''), monto:m });
+            });
             c.abonosMes.forEach(a=>{ const m=Number(a.monto)||0; const d=Math.min(a.diaPago,ud); if(m>0&&d>=1) egresosDia[d].push({nombre:a.nota?`Abono universidad (${a.nota})`:'Abono universidad', monto:m}); });
             appState.movimientos.filter(m=>m.monto<0).forEach(m=>{ const d=Math.min(m.dia,ud); if(d>=1) egresosDia[d].push({nombre:m.nombre||'Compra', monto:-m.monto}); });
 
             let saldo=c.inicial, acumS=0, acumP=0;
             const netoPts=[{x:0,y:saldo}], sueldoPts=[{x:0,y:0}], propinaPts=[{x:0,y:0}];
-            for(let dia=1;dia<=ud;dia++){
-                const iS=sueldoDia[dia], iP=propinaDia[dia], iX=extraDia[dia], iT=iS+iP+iX;
+            for(let dia=1;dia<=finX;dia++){
+                const iS=dia<=ud?sueldoDia[dia]:0, iP=dia<=ud?propinaDia[dia]:0, iX=dia<=ud?extraDia[dia]:0, iT=iS+iP+iX;
                 if(iT>0){ saldo+=iT; acumS+=iS; acumP+=iP; netoPts.push({x:dia,y:saldo}); }
                 const eh=egresosDia[dia];
                 if(eh.length>0){
@@ -551,34 +564,33 @@
                 } else if(iT<=0 && netoPts[netoPts.length-1].x!==dia){
                     netoPts.push({x:dia,y:saldo});
                 }
-                if(iS>0||sueldoPts[sueldoPts.length-1].x!==dia) sueldoPts.push({x:dia,y:acumS});
-                if(iP>0||propinaPts[propinaPts.length-1].x!==dia) propinaPts.push({x:dia,y:acumP});
+                if(dia<=ud && (iS>0||sueldoPts[sueldoPts.length-1].x!==dia)) sueldoPts.push({x:dia,y:acumS});
+                if(dia<=ud && (iP>0||propinaPts[propinaPts.length-1].x!==dia)) propinaPts.push({x:dia,y:acumP});
             }
-            if(netoPts[netoPts.length-1].x!==ud) netoPts.push({x:ud,y:saldo});
+            if(netoPts[netoPts.length-1].x!==finX) netoPts.push({x:finX,y:saldo});
 
-            // Proyección
+            // Proyección (estima ingresos futuros dentro del mes; aplica egresos hasta finX)
             let proy=null;
             const diasConDatos = appState.ingresos.map(i=>i.dia).filter(d=>d>=1&&d<=ud);
             if(proyeccionOn && diasConDatos.length>0){
                 const hoy=Math.max(...diasConDatos);
-                if(ud-hoy>0){
+                if(finX-hoy>0){
                     const pp=[], sp=[];
                     for(let d=1;d<=hoy;d++){ if(propinaDia[d]>0) pp.push(propinaDia[d]); if(sueldoDia[d]>0) sp.push(sueldoDia[d]); }
                     const promP = pp.length? pp.reduce((a,b)=>a+b,0)/pp.length : 0;
                     const promS = promedioRecortado(sp);
-                    const saldoHoy = valorEn(netoPts, hoy);
-                    let sProj=saldoHoy;
+                    let sProj=valorEn(netoPts, hoy);
                     const projPts=[{x:hoy,y:sProj}];
-                    for(let dia=hoy+1;dia<=ud;dia++){
-                        sProj+=promS+promP;
+                    for(let dia=hoy+1;dia<=finX;dia++){
+                        if(dia<=ud) sProj+=promS+promP;
                         const eh=egresosDia[dia];
                         if(eh.length>0){ projPts.push({x:dia,y:sProj}); eh.forEach(e=>{ sProj-=e.monto; projPts.push({x:dia,y:sProj}); }); }
                         else projPts.push({x:dia,y:sProj});
                     }
-                    proy={ hoy, diasRestantes:ud-hoy, promS, promP, saldoFinal:sProj, pts:projPts };
+                    proy={ hoy, diasRestantes:Math.max(0,ud-hoy), promS, promP, saldoFinal:sProj, pts:projPts };
                 }
             }
-            return { netoPts, sueldoPts, propinaPts, proy, ud, saldoFinalReal:saldo };
+            return { netoPts, sueldoPts, propinaPts, proy, ud, ext, finX, saldoFinalReal:saldo };
         }
         function valorEn(pts, x){ let v=pts[0].y; for(const p of pts){ if(p.x<=x) v=p.y; else break; } return v; }
         function promedioRecortado(v){ if(v.length===0) return 0; if(v.length<4) return v.reduce((a,b)=>a+b,0)/v.length; const o=[...v].sort((a,b)=>a-b).slice(1,-1); return o.reduce((a,b)=>a+b,0)/o.length; }
@@ -626,6 +638,24 @@
             }
         };
 
+        const boundaryPlugin = {
+            id: 'boundary',
+            afterDraw(chart){
+                const b = chart.$boundary; if(!b) return;
+                const { ctx, chartArea, scales } = chart;
+                const x = scales.x.getPixelForValue(b.ud + 0.5);
+                if(x < chartArea.left || x > chartArea.right) return;
+                ctx.save();
+                ctx.strokeStyle='rgba(255,255,255,0.16)'; ctx.lineWidth=1; ctx.setLineDash([2,3]);
+                ctx.beginPath(); ctx.moveTo(x, chartArea.top); ctx.lineTo(x, chartArea.bottom); ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.font='10px "JetBrains Mono", monospace'; ctx.textBaseline='top';
+                ctx.fillStyle='rgba(255,255,255,0.28)'; ctx.textAlign='right'; ctx.fillText(b.mesEste, x-6, chartArea.top+2);
+                ctx.fillStyle='#9ec2ff'; ctx.textAlign='left'; ctx.fillText(b.mesSig, x+6, chartArea.top+2);
+                ctx.restore();
+            }
+        };
+
         function renderEvo(c){
             const s = construirSeries(c);
             const mono = "'JetBrains Mono', monospace";
@@ -653,6 +683,9 @@
             const allY = [...s.netoPts.map(p=>p.y), ...(s.proy?s.proy.pts.map(p=>p.y):[]), ...metasInfo.map(m=>m.monto), 0];
             const yMax = Math.max(...allY), yMin = Math.min(...allY);
             const margen = Math.max((yMax-yMin)*0.08, 1000);
+            const abrevEste = MESES[mes.getMonth()].slice(0,3);
+            const abrevSig = MESES[(mes.getMonth()+1)%12].slice(0,3);
+            const etiquetaDia = (v) => { const d=Math.round(v); if(d!==v||d<1) return ''; return d<=s.ud ? String(d) : (d-s.ud)+' '+abrevSig; };
 
             if(evoChart) evoChart.destroy();
             evoChart = new Chart($('evoChart').getContext('2d'), {
@@ -662,8 +695,8 @@
                     responsive:true, maintainAspectRatio:false, showLine:true,
                     interaction:{ mode:'nearest', intersect:false },
                     scales:{
-                        x:{ type:'linear', min:0, max:s.ud,
-                            ticks:{ stepSize:1, maxTicksLimit:9, font:{family:mono,size:10}, color:'#6b7089' },
+                        x:{ type:'linear', min:0, max:s.finX,
+                            ticks:{ stepSize:1, maxTicksLimit:11, autoSkipPadding:8, font:{family:mono,size:10}, color:'#6b7089', callback:etiquetaDia },
                             grid:{ color:'rgba(255,255,255,0.05)', drawTicks:false },
                             title:{ display:true, text:'Día del mes', font:{family:mono,size:10}, color:'#6b7089' } },
                         y:{ suggestedMax:yMax+margen, suggestedMin:Math.min(0,yMin)-(yMin<0?margen:0),
@@ -676,16 +709,17 @@
                             backgroundColor:'#161824', borderColor:'rgba(255,255,255,0.1)', borderWidth:1,
                             titleFont:{family:mono,size:11}, bodyFont:{family:mono,size:11}, padding:10,
                             callbacks:{
-                                title:(items)=> items[0].parsed.x===0 ? 'Inicio de mes' : 'Día '+items[0].parsed.x,
+                                title:(items)=>{ const x=items[0].parsed.x; if(x===0) return 'Inicio de mes'; return x<=s.ud ? `Día ${x} ${abrevEste}` : `Día ${x-s.ud} ${abrevSig}`; },
                                 label:(ctx)=> ctx.dataset.label+': '+clp(ctx.parsed.y),
                                 afterLabel:(ctx)=> ctx.raw && ctx.raw.egreso ? ctx.raw.egreso : ''
                             }
                         }
                     }
                 },
-                plugins:[metaLinesPlugin]
+                plugins:[metaLinesPlugin, boundaryPlugin]
             });
             evoChart.$metaData = { metas: metasInfo };
+            evoChart.$boundary = { ud:s.ud, mesEste:abrevEste, mesSig:abrevSig };
             renderMetas();
         }
 
@@ -716,13 +750,18 @@
 
         function renderEgresos(){
             const body=$('egresos-body'); body.innerHTML='';
+            const abrevEste = MESES[mes.getMonth()].slice(0,3);
+            const abrevSig = MESES[(mes.getMonth()+1)%12].slice(0,3);
             appState.egresos.forEach((e,idx)=>{
                 const row=document.createElement('div'); row.className='row-grid g-egr';
+                const cls = e.mesSig ? 'mes-sig' : 'mes-este';
+                const lbl = e.mesSig ? abrevSig : abrevEste;
                 row.innerHTML = `
                     <span style="width:10px; height:10px; border-radius:50%; background:${PALETA[idx%PALETA.length]};"></span>
                     <input class="fin-inp" type="text" value="${escAttr(e.nombre)}" onchange="actualizarEgreso('${e.id}','nombre',this.value)" style="background:transparent; border-color:transparent;">
                     <input class="fin-inp" type="number" min="0" value="${e.monto}" onchange="actualizarEgreso('${e.id}','monto',parseFloat(this.value)||0)" style="text-align:right;">
                     <input class="fin-inp" type="number" min="1" max="31" value="${e.diaPago}" onchange="actualizarEgreso('${e.id}','diaPago',clampDia(this.value))" style="padding:6px; text-align:center;">
+                    <button class="mes-toggle ${cls}" onclick="toggleMesEgreso('${e.id}')" title="¿Se paga este mes o el mes siguiente?">${lbl}</button>
                     <button class="remove-x" onclick="eliminarEgreso('${e.id}')" title="Eliminar">&times;</button>`;
                 body.appendChild(row);
             });
@@ -799,8 +838,9 @@
         }
 
         // ===== MUTACIONES =====
-        async function agregarEgreso(){ const e={id:crypto.randomUUID(),nombre:'Nuevo egreso',monto:0,diaPago:1}; appState.egresos.push(e); renderAll(); const {error}=await sb.from('egresos_fijos').insert({id:e.id,user_id:uid,nombre:e.nombre,monto:e.monto,dia_pago:e.diaPago}); error?console.error(error):flash(); }
+        async function agregarEgreso(){ const e={id:crypto.randomUUID(),nombre:'Nuevo egreso',monto:0,diaPago:1,mesSig:false}; appState.egresos.push(e); renderAll(); const {error}=await sb.from('egresos_fijos').insert({id:e.id,user_id:uid,nombre:e.nombre,monto:e.monto,dia_pago:e.diaPago,mes_siguiente:false}); error?console.error(error):flash(); }
         async function actualizarEgreso(id,campo,valor){ const e=appState.egresos.find(x=>x.id===id); if(!e)return; e[campo]=valor; renderAll(); const col=campo==='diaPago'?'dia_pago':campo; const {error}=await sb.from('egresos_fijos').update({[col]:valor}).eq('id',id); error?console.error(error):flash(); }
+        async function toggleMesEgreso(id){ const e=appState.egresos.find(x=>x.id===id); if(!e)return; e.mesSig=!e.mesSig; renderAll(); const {error}=await sb.from('egresos_fijos').update({mes_siguiente:e.mesSig}).eq('id',id); error?console.error(error):flash(); }
         async function eliminarEgreso(id){ appState.egresos=appState.egresos.filter(x=>x.id!==id); renderAll(); await sb.from('egresos_fijos').delete().eq('id',id); flash(); }
 
         async function agregarIngreso(){ const ult=appState.ingresos.length?Math.min(rangoMes().ultimoDia,Math.max(...appState.ingresos.map(i=>i.dia))+1):1; const i={id:crypto.randomUUID(),dia:ult,turno:0,propinas:0}; appState.ingresos.push(i); renderAll(); const {error}=await sb.from('ingresos_diarios').insert({id:i.id,user_id:uid,fecha:fechaDeDia(i.dia),turno:i.turno,propinas:i.propinas}); error?console.error(error):flash(); }
@@ -837,7 +877,7 @@
         $('add-meta').addEventListener('click', agregarMetaCompra);
         $('meta-input').addEventListener('change', (e)=> actualizarMeta(parseFloat(e.target.value)||0));
 
-        Object.assign(window, { actualizarEgreso, eliminarEgreso, actualizarIngreso, eliminarIngreso, actualizarAbono, eliminarAbono, actualizarMetaCompra, eliminarMetaCompra, comprarMeta, eliminarMovimiento, clampDia });
+        Object.assign(window, { actualizarEgreso, toggleMesEgreso, eliminarEgreso, actualizarIngreso, eliminarIngreso, actualizarAbono, eliminarAbono, actualizarMetaCompra, eliminarMetaCompra, comprarMeta, eliminarMovimiento, clampDia });
         window.__fin = { get state(){ return appState; }, set state(s){ appState=s; }, renderAll };
 
         if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
