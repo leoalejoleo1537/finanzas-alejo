@@ -75,15 +75,19 @@
 
         .row-grid { display:grid; align-items:center; gap:14px; padding:11px 6px; border-bottom:1px solid rgba(255,255,255,0.05); }
         .head-grid { display:grid; gap:14px; font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:#6b7089; padding:18px 6px 12px; border-bottom:1px solid rgba(255,255,255,0.08); }
-        .g-ing { grid-template-columns:72px 1fr 1fr 88px 24px; }
-        .g-egr { grid-template-columns:16px 1fr 1fr 52px 62px 24px; }
-        .mes-toggle { font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.04em; text-transform:uppercase; border-radius:8px; padding:5px 4px; cursor:pointer; text-align:center; transition:filter .2s; }
-        .mes-toggle:hover { filter:brightness(1.2); }
-        .mes-este { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); color:#9aa0b5; }
-        .mes-sig { background:rgba(158,194,255,0.14); border:1px solid rgba(158,194,255,0.35); color:#9ec2ff; }
+        .g-ing { grid-template-columns:150px 1fr 1fr 92px 24px; }
+        .g-egr { grid-template-columns:16px 1fr 1fr 150px 24px; }
         .g-abo { grid-template-columns:1fr 84px 64px 24px; }
-        .g-meta { grid-template-columns:16px 1fr 110px auto 24px; }
+        .g-meta { grid-template-columns:16px 1fr 148px 100px auto 24px; }
         .g-mov { grid-template-columns:72px 1fr 110px 24px; }
+        input.fin-inp[type="date"] { color-scheme: dark; font-size:12px; }
+        @media (max-width:640px){
+            .g-ing { grid-template-columns:132px 1fr 1fr 24px; }
+            .g-ing .col-total { display:none; }
+            .g-egr { grid-template-columns:16px 1fr 1fr 128px 24px; }
+            .g-meta { grid-template-columns:16px 1fr 118px 84px 24px; }
+            .g-meta .col-buy { display:none; }
+        }
     </style>
 </head>
 <body>
@@ -139,7 +143,7 @@
                 <button class="tab-btn active" data-tab="resumen">Resumen</button>
                 <button class="tab-btn" data-tab="ingresos">Ingresos</button>
                 <button class="tab-btn" data-tab="egresos">Egresos</button>
-                <button class="tab-btn" data-tab="deuda">Metas</button>
+                <button class="tab-btn" data-tab="deuda">Deuda</button>
                 <button class="tab-btn" data-tab="banco">Banco</button>
             </nav>
 
@@ -226,6 +230,24 @@
                     <div style="position:relative; height:360px;"><canvas id="evoChart"></canvas></div>
                 </div>
 
+                <div class="glass" style="padding:26px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; gap:12px; flex-wrap:wrap;">
+                        <div><h2 style="font-size:16px; font-weight:700; margin:0;">Metas de compra</h2><p style="color:#9aa0b5; font-size:13px; margin:0;">Cada meta es una línea en el gráfico de arriba. Te digo cuánto te falta y cuándo la alcanzas.</p></div>
+                        <button class="add-btn add-green" id="add-meta">+ Añadir meta</button>
+                    </div>
+                    <div class="head-grid g-meta"><span></span><span>Meta</span><span>Fecha objetivo</span><span style="text-align:right;">Monto</span><span></span><span></span></div>
+                    <div id="metas-body"></div>
+                    <div id="metas-logradas-wrap" class="hidden" style="margin-top:24px;">
+                        <p class="mono" style="font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:#6b7089; margin:0 0 6px;">Logradas</p>
+                        <div id="metas-logradas"></div>
+                    </div>
+                    <div id="movs-wrap" class="hidden" style="margin-top:24px;">
+                        <p class="mono" style="font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:#6b7089; margin:0 0 6px;">Compras y otros movimientos del mes</p>
+                        <div class="head-grid g-mov" style="padding-top:6px;"><span>Fecha</span><span>Concepto</span><span style="text-align:right;">Monto</span><span></span></div>
+                        <div id="movs-body"></div>
+                    </div>
+                </div>
+
                 <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:16px;">
                     <div class="kpi"><div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;"><span style="width:8px;height:8px;border-radius:50%;background:#9ec2ff;"></span><span class="klabel">Sueldo turnos</span></div><div id="kpi-sueldo" class="tnum" style="font-size:22px; font-weight:700;">$0</div></div>
                     <div class="kpi"><div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;"><span style="width:8px;height:8px;border-radius:50%;background:#ffce8a;"></span><span class="klabel">Propinas</span></div><div id="kpi-propinas" class="tnum" style="font-size:22px; font-weight:700;">$0</div></div>
@@ -240,7 +262,7 @@
                     <div><h2 style="font-size:18px; font-weight:700; margin:0 0 4px;">Ingresos diarios</h2><p style="color:#9aa0b5; font-size:13px; margin:0;">Tu registro a mano: turno y propinas de cada día.</p></div>
                     <button class="add-btn add-green" id="add-ingreso">+ Añadir día</button>
                 </div>
-                <div class="head-grid g-ing"><span>Día</span><span style="text-align:right;">Turno</span><span style="text-align:right;">Propinas</span><span style="text-align:right;">Total</span><span></span></div>
+                <div class="head-grid g-ing"><span>Fecha</span><span style="text-align:right;">Turno</span><span style="text-align:right;">Propinas</span><span class="col-total" style="text-align:right;">Total</span><span></span></div>
                 <div id="ingresos-body"></div>
                 <div style="display:flex; justify-content:space-between; align-items:baseline; margin-top:20px; padding-top:16px;">
                     <span class="mono" style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:#9aa0b5;">Total ingresos del mes</span>
@@ -254,7 +276,7 @@
                     <div><h2 style="font-size:18px; font-weight:700; margin:0 0 4px;">Egresos fijos</h2><p style="color:#9aa0b5; font-size:13px; margin:0;">Gastos recurrentes con su día de pago.</p></div>
                     <button class="add-btn add-red" id="add-egreso">+ Añadir egreso</button>
                 </div>
-                <div class="head-grid g-egr"><span></span><span>Nombre</span><span style="text-align:right;">Monto</span><span style="text-align:right;">Día</span><span style="text-align:center;">Mes</span><span></span></div>
+                <div class="head-grid g-egr"><span></span><span>Nombre</span><span style="text-align:right;">Monto</span><span>Fecha de pago</span><span></span></div>
                 <div id="egresos-body"></div>
                 <div style="display:flex; justify-content:space-between; align-items:baseline; margin-top:20px; padding-top:16px;">
                     <span class="mono" style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:#9aa0b5;">Total egresos fijos</span>
@@ -262,26 +284,8 @@
                 </div>
             </div>
 
-            <!-- ===== METAS ===== -->
+            <!-- ===== DEUDA ===== -->
             <div id="tab-deuda" data-panel class="hidden" style="display:flex; flex-direction:column; gap:20px;">
-
-                <div class="glass" style="padding:26px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; gap:12px; flex-wrap:wrap;">
-                        <div><h2 style="font-size:18px; font-weight:700; margin:0 0 4px;">Metas de compra</h2><p style="color:#9aa0b5; font-size:13px; margin:0;">Líneas de referencia en el gráfico: cuando tu saldo las cruza, te alcanza.</p></div>
-                        <button class="add-btn add-green" id="add-meta">+ Añadir meta</button>
-                    </div>
-                    <div class="head-grid g-meta"><span></span><span>Meta</span><span style="text-align:right;">Monto</span><span></span><span></span></div>
-                    <div id="metas-body"></div>
-                    <div id="metas-logradas-wrap" class="hidden" style="margin-top:24px;">
-                        <p class="mono" style="font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:#6b7089; margin:0 0 6px;">Logradas</p>
-                        <div id="metas-logradas"></div>
-                    </div>
-                    <div id="movs-wrap" class="hidden" style="margin-top:24px;">
-                        <p class="mono" style="font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:#6b7089; margin:0 0 6px;">Compras y otros movimientos del mes</p>
-                        <div class="head-grid g-mov" style="padding-top:6px;"><span>Fecha</span><span>Concepto</span><span style="text-align:right;">Monto</span><span></span></div>
-                        <div id="movs-body"></div>
-                    </div>
-                </div>
 
                 <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px;">
                     <div class="kpi"><div class="klabel" style="margin-bottom:10px;">Meta total</div><div id="d-meta" class="tnum" style="font-size:22px; font-weight:700;">$0</div></div>
@@ -379,6 +383,7 @@
             tabActual = b.dataset.tab;
             document.querySelectorAll('.tab-btn').forEach(x => x.classList.toggle('active', x===b));
             document.querySelectorAll('[data-panel]').forEach(p => p.classList.toggle('hidden', p.id !== 'tab-'+tabActual));
+            if(tabActual==='resumen' && evoChart) requestAnimationFrame(()=>evoChart.resize());
         }));
 
         // ===== MES =====
@@ -406,12 +411,12 @@
             }
             metaId = deudaMeta.id;
             const compras = (metasRes.data||[]).filter(m=>m.tipo==='compra');
-            appState.metas = compras.filter(m=>!m.cumplida_en).map(m=>({ id:m.id, nombre:m.nombre, monto:Number(m.monto_objetivo)||0 }));
+            appState.metas = compras.filter(m=>!m.cumplida_en).map(m=>({ id:m.id, nombre:m.nombre, monto:Number(m.monto_objetivo)||0, fecha:m.fecha_objetivo||'' }));
             appState.metasLogradas = compras.filter(m=>m.cumplida_en).map(m=>({ id:m.id, nombre:m.nombre, monto:Number(m.monto_objetivo)||0, fecha:m.cumplida_en }));
 
             const abRes = await sb.from('abonos').select('*').eq('meta_id',metaId).order('creado_en',{ascending:true});
             appState.egresos = (egRes.data||[]).map(x=>({ id:x.id, nombre:x.nombre, monto:Number(x.monto)||0, diaPago:x.dia_pago, mesSig:!!x.mes_siguiente }));
-            appState.ingresos = (ingRes.data||[]).map(x=>({ id:x.id, dia:diaDeFecha(x.fecha), propinas:Number(x.propinas)||0, turno:Number(x.turno)||0 }));
+            appState.ingresos = (ingRes.data||[]).map(x=>({ id:x.id, fecha:x.fecha, dia:diaDeFecha(x.fecha), propinas:Number(x.propinas)||0, turno:Number(x.turno)||0 }));
             appState.movimientos = (movRes.data||[]).map(x=>({ id:x.id, fecha:x.fecha, dia:diaDeFecha(x.fecha), nombre:x.comercio, monto:Number(x.monto)||0 }));
             appState.deuda = {
                 meta: Number(deudaMeta.monto_objetivo)||0,
@@ -499,7 +504,8 @@
             return { abonosMes, totalSueldo, totalPropinas, bruto, egresosFijos, abonadoMes, abonadoTotal, egresosTot, flujo, inicial, disponible, meta, restante, pctDeuda };
         }
 
-        function renderAll(){ const c=calcular(); renderResumen(c); renderIngresos(); renderEgresos(); renderMetas(); renderDeuda(c); renderEvo(c); }
+        let ultimoCalc = null;
+        function renderAll(){ const c=calcular(); ultimoCalc=c; renderResumen(c); renderIngresos(); renderEgresos(); renderMetas(); renderDeuda(c); renderEvo(c); }
 
         function renderResumen(c){
             $('hero-saldo').textContent = clp(c.disponible);
@@ -622,10 +628,21 @@
                     ctx.beginPath(); ctx.moveTo(chartArea.left,y); ctx.lineTo(chartArea.right,y); ctx.stroke();
                     ctx.setLineDash([]);
                     let tag = `${m.nombre} ${clp(m.monto)}`;
-                    if(m.cruce){ tag += m.cruce.ya ? ' · ya te alcanza' : ` · ≈ día ${m.cruce.dia}`; }
+                    if(m.cruce){ tag += m.cruce.ya ? ' · ya te alcanza' : ` · ${fechaCorta(isoDePos(m.cruce.dia))}`; }
                     ctx.font='10px "JetBrains Mono", monospace';
                     ctx.fillStyle=color; ctx.textAlign='right'; ctx.textBaseline='bottom'; ctx.globalAlpha=1;
                     ctx.fillText(tag, chartArea.right-4, y-4);
+                    // Rombo en la fecha objetivo
+                    if(m.targetPos!=null){
+                        const tx = scales.x.getPixelForValue(m.targetPos);
+                        if(tx>=chartArea.left && tx<=chartArea.right){
+                            ctx.save(); ctx.translate(tx,y); ctx.rotate(Math.PI/4);
+                            ctx.fillStyle=color; ctx.fillRect(-4,-4,8,8);
+                            ctx.strokeStyle='#08090f'; ctx.lineWidth=1.5; ctx.strokeRect(-4,-4,8,8);
+                            ctx.restore();
+                        }
+                    }
+                    // Punto donde el saldo cruza la meta
                     if(m.cruce && !m.cruce.ya){
                         const cx = scales.x.getPixelForValue(m.cruce.dia);
                         if(cx>=chartArea.left && cx<=chartArea.right){
@@ -660,8 +677,9 @@
             const s = construirSeries(c);
             const mono = "'JetBrains Mono', monospace";
 
+            const posDeISO = (iso) => { if(!iso) return null; const p=String(iso).split('-').map(Number); const ym=p[0]*12+(p[1]-1); const vym=mes.getFullYear()*12+mes.getMonth(); if(ym===vym) return Math.min(p[2],s.ud); if(ym===vym+1) return s.ud+Math.min(p[2],s.ext); return null; };
             const metasInfo = appState.metas.filter(m=>m.monto>0).map(m=>({
-                ...m, cruce: cruceDeMeta(m.monto, s.netoPts, s.proy?s.proy.pts:null)
+                ...m, cruce: cruceDeMeta(m.monto, s.netoPts, s.proy?s.proy.pts:null), targetPos: posDeISO(m.fecha)
             }));
             appState.metas.forEach(m=>{ const mi=metasInfo.find(x=>x.id===m.id); m._cruce = mi?mi.cruce:null; });
 
@@ -696,7 +714,7 @@
                     interaction:{ mode:'nearest', intersect:false },
                     scales:{
                         x:{ type:'linear', min:0, max:s.finX,
-                            ticks:{ stepSize:1, maxTicksLimit:11, autoSkipPadding:8, font:{family:mono,size:10}, color:'#6b7089', callback:etiquetaDia },
+                            ticks:{ stepSize:1, autoSkip:true, maxTicksLimit:20, autoSkipPadding:4, maxRotation:0, minRotation:0, font:{family:mono,size:9}, color:'#6b7089', callback:etiquetaDia },
                             grid:{ color:'rgba(255,255,255,0.05)', drawTicks:false },
                             title:{ display:true, text:'Día del mes', font:{family:mono,size:10}, color:'#6b7089' } },
                         y:{ suggestedMax:yMax+margen, suggestedMin:Math.min(0,yMin)-(yMin<0?margen:0),
@@ -732,15 +750,17 @@
         // ===== LISTAS =====
         function renderIngresos(){
             const body=$('ingresos-body'); body.innerHTML='';
+            const r = rangoMes();
             const orden=[...appState.ingresos].sort((a,b)=>a.dia-b.dia);
             orden.forEach(i=>{
                 const total=(Number(i.turno)||0)+(Number(i.propinas)||0);
+                const fechaISO = i.fecha || fechaDeDia(i.dia);
                 const row=document.createElement('div'); row.className='row-grid g-ing';
                 row.innerHTML = `
-                    <input class="fin-inp" type="number" min="1" max="31" value="${i.dia}" onchange="actualizarIngreso('${i.id}','dia',clampDia(this.value))" style="padding:6px; text-align:center;">
+                    <input class="fin-inp" type="date" value="${fechaISO}" min="${r.primero}" max="${r.ultimo}" onchange="actualizarIngresoFecha('${i.id}',this.value)">
                     <input class="fin-inp" type="number" min="0" value="${i.turno}" onchange="actualizarIngreso('${i.id}','turno',parseFloat(this.value)||0)" style="text-align:right;">
                     <input class="fin-inp" type="number" min="0" value="${i.propinas}" onchange="actualizarIngreso('${i.id}','propinas',parseFloat(this.value)||0)" style="text-align:right;">
-                    <span class="mono tnum" style="text-align:right; font-size:14px; font-weight:600; color:#7ee0b8;">${clp(total)}</span>
+                    <span class="mono tnum col-total" style="text-align:right; font-size:14px; font-weight:600; color:#7ee0b8;">${clp(total)}</span>
                     <button class="remove-x" onclick="eliminarIngreso('${i.id}')" title="Eliminar">&times;</button>`;
                 body.appendChild(row);
             });
@@ -748,20 +768,24 @@
             $('ingresos-total').textContent = clp(appState.ingresos.reduce((a,i)=>a+(Number(i.turno)||0)+(Number(i.propinas)||0),0));
         }
 
+        function isoDeDiaMes(dia, mesSig){
+            const base = new Date(mes.getFullYear(), mes.getMonth()+(mesSig?1:0), 1);
+            const ud = new Date(base.getFullYear(), base.getMonth()+1, 0).getDate();
+            const d = Math.min(Math.max(1, parseInt(dia)||1), ud);
+            return `${base.getFullYear()}-${pad2(base.getMonth()+1)}-${pad2(d)}`;
+        }
         function renderEgresos(){
             const body=$('egresos-body'); body.innerHTML='';
-            const abrevEste = MESES[mes.getMonth()].slice(0,3);
-            const abrevSig = MESES[(mes.getMonth()+1)%12].slice(0,3);
+            const minISO = rangoMes().primero;
+            const finNext = new Date(mes.getFullYear(), mes.getMonth()+2, 0);
+            const maxISO = `${finNext.getFullYear()}-${pad2(finNext.getMonth()+1)}-${pad2(finNext.getDate())}`;
             appState.egresos.forEach((e,idx)=>{
                 const row=document.createElement('div'); row.className='row-grid g-egr';
-                const cls = e.mesSig ? 'mes-sig' : 'mes-este';
-                const lbl = e.mesSig ? abrevSig : abrevEste;
                 row.innerHTML = `
                     <span style="width:10px; height:10px; border-radius:50%; background:${PALETA[idx%PALETA.length]};"></span>
                     <input class="fin-inp" type="text" value="${escAttr(e.nombre)}" onchange="actualizarEgreso('${e.id}','nombre',this.value)" style="background:transparent; border-color:transparent;">
                     <input class="fin-inp" type="number" min="0" value="${e.monto}" onchange="actualizarEgreso('${e.id}','monto',parseFloat(this.value)||0)" style="text-align:right;">
-                    <input class="fin-inp" type="number" min="1" max="31" value="${e.diaPago}" onchange="actualizarEgreso('${e.id}','diaPago',clampDia(this.value))" style="padding:6px; text-align:center;">
-                    <button class="mes-toggle ${cls}" onclick="toggleMesEgreso('${e.id}')" title="¿Se paga este mes o el mes siguiente?">${lbl}</button>
+                    <input class="fin-inp" type="date" value="${isoDeDiaMes(e.diaPago, e.mesSig)}" min="${minISO}" max="${maxISO}" onchange="actualizarEgresoFecha('${e.id}',this.value)">
                     <button class="remove-x" onclick="eliminarEgreso('${e.id}')" title="Eliminar">&times;</button>`;
                 body.appendChild(row);
             });
@@ -769,27 +793,41 @@
             $('egresos-total').textContent = clp(appState.egresos.reduce((a,e)=>a+(Number(e.monto)||0),0));
         }
 
+        function isoDePos(pos){ const ud=rangoMes().ultimoDia; return pos<=ud ? isoDeDiaMes(pos,false) : isoDeDiaMes(pos-ud,true); }
+        function fechaCorta(iso){ if(!iso) return ''; const p=String(iso).split('-').map(Number); return `${p[2]} ${MESES[(p[1]||1)-1].slice(0,3)}`; }
+
         function renderMetas(){
             const body=$('metas-body'); body.innerHTML='';
+            const disp = ultimoCalc ? ultimoCalc.disponible : 0;
             appState.metas.forEach((m,i)=>{
                 const color = PALETA[i%PALETA.length];
                 const row=document.createElement('div'); row.className='row-grid g-meta';
                 const armada = compraArmada===m.id;
-                let cruceTxt = '';
-                if(m.monto>0 && m._cruce){ cruceTxt = m._cruce.ya ? 'ya te alcanza ✓' : `la alcanzas ≈ día ${m._cruce.dia}`; }
-                else if(m.monto>0){ cruceTxt = 'fuera de alcance este mes'; }
+                const falta = Math.max(0, m.monto - disp);
+                let sub, subColor='#6b7089';
+                if(m.monto<=0){ sub='define un monto'; }
+                else {
+                    sub = `te faltan ${clp(falta)}`;
+                    if(m._cruce && m._cruce.ya){ sub += ' · ya te alcanza ✓'; subColor='#7ee0b8'; }
+                    else if(m._cruce){
+                        const cISO = isoDePos(m._cruce.dia);
+                        sub += ` · alcanzas ≈ ${fechaCorta(cISO)}`;
+                        if(m.fecha){ if(cISO<=m.fecha){ sub+=' · a tiempo ✓'; subColor='#7ee0b8'; } else { sub+=' · tarde ✗'; subColor='#ff9a86'; } }
+                    } else { sub += ' · fuera de alcance este mes'; subColor='#ff9a86'; }
+                }
                 row.innerHTML = `
                     <span style="width:10px; height:10px; border-radius:50%; background:${color};"></span>
                     <div>
                         <input class="fin-inp" type="text" value="${escAttr(m.nombre)}" onchange="actualizarMetaCompra('${m.id}','nombre',this.value)" placeholder="Ej: TV nueva" style="background:transparent; border-color:transparent;">
-                        <div class="mono" style="font-size:10px; color:${m._cruce&&m._cruce.ya?'#7ee0b8':'#6b7089'}; padding-left:10px;">${cruceTxt}</div>
+                        <div class="mono" style="font-size:10px; color:${subColor}; padding-left:10px;">${sub}</div>
                     </div>
+                    <input class="fin-inp" type="date" value="${m.fecha||''}" onchange="actualizarMetaCompra('${m.id}','fecha',this.value)" title="Fecha objetivo (opcional)">
                     <input class="fin-inp" type="number" min="0" value="${m.monto}" onchange="actualizarMetaCompra('${m.id}','monto',parseFloat(this.value)||0)" style="text-align:right;">
-                    <button class="btn-mini ${armada?'confirm':''}" onclick="comprarMeta('${m.id}')">${armada?'¿Confirmar compra?':'La compré'}</button>
+                    <button class="btn-mini col-buy ${armada?'confirm':''}" onclick="comprarMeta('${m.id}')">${armada?'¿Confirmar?':'La compré'}</button>
                     <button class="remove-x" onclick="eliminarMetaCompra('${m.id}')" title="Eliminar">&times;</button>`;
                 body.appendChild(row);
             });
-            if(!appState.metas.length) body.innerHTML = '<p style="color:#6b7089; font-size:13px; padding:16px 6px;">Sin metas activas. Toca “+ Añadir meta” — aparecerá como línea punteada en el gráfico.</p>';
+            if(!appState.metas.length) body.innerHTML = '<p style="color:#6b7089; font-size:13px; padding:16px 6px;">Sin metas activas. Toca “+ Añadir meta” — aparecerá como línea en el gráfico de arriba.</p>';
 
             const lw=$('metas-logradas-wrap'), lb=$('metas-logradas');
             if(appState.metasLogradas.length){
@@ -840,11 +878,12 @@
         // ===== MUTACIONES =====
         async function agregarEgreso(){ const e={id:crypto.randomUUID(),nombre:'Nuevo egreso',monto:0,diaPago:1,mesSig:false}; appState.egresos.push(e); renderAll(); const {error}=await sb.from('egresos_fijos').insert({id:e.id,user_id:uid,nombre:e.nombre,monto:e.monto,dia_pago:e.diaPago,mes_siguiente:false}); error?console.error(error):flash(); }
         async function actualizarEgreso(id,campo,valor){ const e=appState.egresos.find(x=>x.id===id); if(!e)return; e[campo]=valor; renderAll(); const col=campo==='diaPago'?'dia_pago':campo; const {error}=await sb.from('egresos_fijos').update({[col]:valor}).eq('id',id); error?console.error(error):flash(); }
-        async function toggleMesEgreso(id){ const e=appState.egresos.find(x=>x.id===id); if(!e)return; e.mesSig=!e.mesSig; renderAll(); const {error}=await sb.from('egresos_fijos').update({mes_siguiente:e.mesSig}).eq('id',id); error?console.error(error):flash(); }
+        async function actualizarEgresoFecha(id,iso){ const e=appState.egresos.find(x=>x.id===id); if(!e||!iso)return; const p=iso.split('-').map(Number); const pickedYM=p[0]*12+(p[1]-1); const viewedYM=mes.getFullYear()*12+mes.getMonth(); e.mesSig=pickedYM>viewedYM; e.diaPago=clampDia(p[2]); renderAll(); const {error}=await sb.from('egresos_fijos').update({dia_pago:e.diaPago, mes_siguiente:e.mesSig}).eq('id',id); error?console.error(error):flash(); }
         async function eliminarEgreso(id){ appState.egresos=appState.egresos.filter(x=>x.id!==id); renderAll(); await sb.from('egresos_fijos').delete().eq('id',id); flash(); }
 
-        async function agregarIngreso(){ const ult=appState.ingresos.length?Math.min(rangoMes().ultimoDia,Math.max(...appState.ingresos.map(i=>i.dia))+1):1; const i={id:crypto.randomUUID(),dia:ult,turno:0,propinas:0}; appState.ingresos.push(i); renderAll(); const {error}=await sb.from('ingresos_diarios').insert({id:i.id,user_id:uid,fecha:fechaDeDia(i.dia),turno:i.turno,propinas:i.propinas}); error?console.error(error):flash(); }
-        async function actualizarIngreso(id,campo,valor){ const i=appState.ingresos.find(x=>x.id===id); if(!i)return; i[campo]=valor; renderAll(); const patch=campo==='dia'?{fecha:fechaDeDia(valor)}:{[campo]:valor}; const {error}=await sb.from('ingresos_diarios').update(patch).eq('id',id); error?console.error(error):flash(); }
+        async function agregarIngreso(){ const ult=appState.ingresos.length?Math.min(rangoMes().ultimoDia,Math.max(...appState.ingresos.map(i=>i.dia))+1):1; const i={id:crypto.randomUUID(),dia:ult,fecha:fechaDeDia(ult),turno:0,propinas:0}; appState.ingresos.push(i); renderAll(); const {error}=await sb.from('ingresos_diarios').insert({id:i.id,user_id:uid,fecha:i.fecha,turno:i.turno,propinas:i.propinas}); error?console.error(error):flash(); }
+        async function actualizarIngreso(id,campo,valor){ const i=appState.ingresos.find(x=>x.id===id); if(!i)return; i[campo]=valor; renderAll(); const {error}=await sb.from('ingresos_diarios').update({[campo]:valor}).eq('id',id); error?console.error(error):flash(); }
+        async function actualizarIngresoFecha(id,iso){ const i=appState.ingresos.find(x=>x.id===id); if(!i||!iso)return; i.fecha=iso; i.dia=diaDeFecha(iso); renderAll(); const {error}=await sb.from('ingresos_diarios').update({fecha:iso}).eq('id',id); error?console.error(error):flash(); }
         async function eliminarIngreso(id){ appState.ingresos=appState.ingresos.filter(x=>x.id!==id); renderAll(); await sb.from('ingresos_diarios').delete().eq('id',id); flash(); }
 
         async function agregarAbono(){ const a={id:crypto.randomUUID(),nota:'',monto:0,diaPago:1,fecha:fechaDeDia(1)}; appState.deuda.abonos.push(a); renderAll(); const {error}=await sb.from('abonos').insert({id:a.id,user_id:uid,meta_id:metaId,nota:a.nota,monto:a.monto,fecha:a.fecha}); error?console.error(error):flash(); }
@@ -853,8 +892,8 @@
 
         async function actualizarMeta(valor){ appState.deuda.meta=valor; renderAll(); const {error}=await sb.from('metas').update({monto_objetivo:valor}).eq('id',metaId); error?console.error(error):flash(); }
 
-        async function agregarMetaCompra(){ const m={id:crypto.randomUUID(),nombre:'Nueva meta',monto:0}; appState.metas.push(m); renderAll(); const {error}=await sb.from('metas').insert({id:m.id,user_id:uid,nombre:m.nombre,tipo:'compra',monto_objetivo:m.monto}); error?console.error(error):flash(); }
-        async function actualizarMetaCompra(id,campo,valor){ const m=appState.metas.find(x=>x.id===id); if(!m)return; m[campo]=valor; renderAll(); const col=campo==='monto'?'monto_objetivo':campo; const {error}=await sb.from('metas').update({[col]:valor}).eq('id',id); error?console.error(error):flash(); }
+        async function agregarMetaCompra(){ const m={id:crypto.randomUUID(),nombre:'Nueva meta',monto:0,fecha:''}; appState.metas.push(m); renderAll(); const {error}=await sb.from('metas').insert({id:m.id,user_id:uid,nombre:m.nombre,tipo:'compra',monto_objetivo:m.monto}); error?console.error(error):flash(); }
+        async function actualizarMetaCompra(id,campo,valor){ const m=appState.metas.find(x=>x.id===id); if(!m)return; m[campo]=valor; renderAll(); const col=campo==='monto'?'monto_objetivo':(campo==='fecha'?'fecha_objetivo':campo); const val=(campo==='fecha'&&!valor)?null:valor; const {error}=await sb.from('metas').update({[col]:val}).eq('id',id); error?console.error(error):flash(); }
         async function eliminarMetaCompra(id){ appState.metas=appState.metas.filter(x=>x.id!==id); if(compraArmada===id) compraArmada=null; renderAll(); await sb.from('metas').delete().eq('id',id); flash(); }
 
         async function comprarMeta(id){
@@ -877,7 +916,7 @@
         $('add-meta').addEventListener('click', agregarMetaCompra);
         $('meta-input').addEventListener('change', (e)=> actualizarMeta(parseFloat(e.target.value)||0));
 
-        Object.assign(window, { actualizarEgreso, toggleMesEgreso, eliminarEgreso, actualizarIngreso, eliminarIngreso, actualizarAbono, eliminarAbono, actualizarMetaCompra, eliminarMetaCompra, comprarMeta, eliminarMovimiento, clampDia });
+        Object.assign(window, { actualizarEgreso, actualizarEgresoFecha, eliminarEgreso, actualizarIngreso, actualizarIngresoFecha, eliminarIngreso, actualizarAbono, eliminarAbono, actualizarMetaCompra, eliminarMetaCompra, comprarMeta, eliminarMovimiento, clampDia });
         window.__fin = { get state(){ return appState; }, set state(s){ appState=s; }, renderAll };
 
         if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
